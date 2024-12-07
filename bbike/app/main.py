@@ -7,8 +7,7 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     root_path="/api/v1",
-    docs_url="/docs",
-    openapi_url="/openapi.json"
+    docs_url="/docs"
 )
 
 allowed_origins = [
