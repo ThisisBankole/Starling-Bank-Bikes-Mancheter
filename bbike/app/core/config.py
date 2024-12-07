@@ -1,7 +1,7 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings # type: ignore
 from typing import List, Optional
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv # type: ignore
 
 load_dotenv()
 

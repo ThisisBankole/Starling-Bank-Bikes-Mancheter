@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException # type: ignore
 from datetime import datetime
 from app.services.gbfs_service import gbfs_service
 from app.core.constants import GBFS_URLS

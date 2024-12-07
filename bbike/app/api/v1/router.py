@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter # type: ignore
 from app.api.v1.endpoints import bikes, station
 
 api_router = APIRouter()

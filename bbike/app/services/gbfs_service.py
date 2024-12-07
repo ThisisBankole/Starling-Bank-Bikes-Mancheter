@@ -1,6 +1,6 @@
-import httpx 
+import httpx  # type: ignore
 import time
-from fastapi import HTTPException
+from fastapi import HTTPException # type: ignore
 from typing import Dict
 from app.core.constants import GBFS_URLS
 from app.core.config import settings
