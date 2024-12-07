@@ -19,7 +19,8 @@ jobs:
     - name: Install dependencies
       run: |
         cd bike-sharing-dashboard
-        npm install
+        npm install --production=false  
+
 
     - name: Build
       run: |
