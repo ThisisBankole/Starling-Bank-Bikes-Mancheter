@@ -26,6 +26,7 @@ jobs:
       run: |
         cd bike-sharing-dashboard
         npm run build
+        cp web.config build/
 
     - name: Deploy to Azure
       uses: azure/webapps-deploy@v2
