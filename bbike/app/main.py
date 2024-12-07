@@ -14,7 +14,8 @@ app = FastAPI(
 allowed_origins = [
     "https://bike-monitor-dkbkh8anaweqd0e3.ukwest-01.azurewebsites.net",
     "http://localhost:3000",
-    "http://localhost:5173"
+    "http://localhost:5173",
+    "https://bike-sharing-api-cng9c5dyfhghhya0.ukwest-01.azurewebsites.net"
 ]
 
 
