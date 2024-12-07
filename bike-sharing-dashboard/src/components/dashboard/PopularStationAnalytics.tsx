@@ -63,23 +63,23 @@ const PopularStationsAnalytics = ({ activeStations }: PopularStationsProps) => {
   }, [activeStations]);
 
   return (
-    <Tabs defaultValue="utilization" className="w-full">
+    <Tabs defaultValue="utilization" className="w-full space-y-4">
       <CardHeader>
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
           <div>
-            <CardTitle>Popular Stations</CardTitle>
-            <CardDescription>Most utilized and highest capacity stations</CardDescription>
+            <CardTitle className="text-lg sm:text-xl">Popular Stations</CardTitle>
+            <CardDescription className="text-sm">Most utilized and highest capacity stations</CardDescription>
           </div>
-          <TabsList>
-            <TabsTrigger value="utilization">By Usage</TabsTrigger>
-            <TabsTrigger value="capacity">By Capacity</TabsTrigger>
+          <TabsList className="self-start sm:self-center">
+            <TabsTrigger value="utilization" className="text-sm">By Usage</TabsTrigger>
+            <TabsTrigger value="capacity" className="text-sm">By Capacity</TabsTrigger>
           </TabsList>
         </div>
       </CardHeader>
 
       <TabsContent value="utilization">
         <Card>
-          <CardContent>
+          <CardContent className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -92,24 +92,24 @@ const PopularStationsAnalytics = ({ activeStations }: PopularStationsProps) => {
               <TableBody>
                 {stationMetrics.topStations.map((station, index) => (
                   <TableRow key={station.name}>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium whitespace-nowrap min-w-[200px]">
                       {station.name}
                       {index < 3 && (
-                        <Badge className="ml-2" variant="secondary">
+                        <Badge className="ml-2 hidden sm:inline-flex" variant="secondary">
                           Top {index + 1}
                         </Badge>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="min-w-[150px]">
                       <div className="space-y-2">
-                        <Progress value={station.utilization} className="h-2" />
+                        <Progress value={station.utilization} className="h-2 w-full" />
                         <span className="text-sm text-muted-foreground">
                           {station.utilization.toFixed(1)}%
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell>{station.availableBikes} / {station.capacity}</TableCell>
-                    <TableCell>
+                    <TableCell className="whitespace-nowrap min-w-[120px]">{station.availableBikes} / {station.capacity}</TableCell>
+                    <TableCell className="min-w-[140px]">
                       <Badge variant={station.status === 'Fully Operational' ? 'default' : 'secondary'}>
                         {station.status}
                       </Badge>
@@ -124,7 +124,7 @@ const PopularStationsAnalytics = ({ activeStations }: PopularStationsProps) => {
 
       <TabsContent value="capacity">
         <Card>
-          <CardContent>
+          <CardContent className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -137,24 +137,24 @@ const PopularStationsAnalytics = ({ activeStations }: PopularStationsProps) => {
               <TableBody>
                 {stationMetrics.highCapacityStations.map((station, index) => (
                   <TableRow key={station.name}>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium whitespace-nowrap min-w-[200px]">
                       {station.name}
                       {index < 3 && (
-                        <Badge className="ml-2" variant="secondary">
+                        <Badge className="ml-2 hidden sm:inline-flex" variant="secondary">
                           Top {index + 1}
                         </Badge>
                       )}
                     </TableCell>
-                    <TableCell>{station.capacity} bikes</TableCell>
-                    <TableCell>
+                    <TableCell className="whitespace-nowrap min-w-[120px]">{station.capacity} bikes</TableCell>
+                    <TableCell className="min-w-[150px]">
                       <div className="space-y-2">
-                        <Progress value={station.utilization} className="h-2" />
+                        <Progress value={station.utilization} className="h-2 w-full" />
                         <span className="text-sm text-muted-foreground">
                           {station.availableBikes} bikes available
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="min-w-[140px]">
                       <Badge variant={station.status === 'Fully Operational' ? 'default' : 'secondary'}>
                         {station.status}
                       </Badge>
