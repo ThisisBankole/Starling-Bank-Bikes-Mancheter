@@ -40,7 +40,7 @@ const HomePage = () => {
           <div className="flex flex-col gap-8">
             <div className="text-center md:text-left">
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent mb-2 md:mb-4">
-                Starling Bank Bikes Manchester
+                Starling Bikes Manchester
               </h1>
               <p className="text-sm sm:text-base md:text-lg text-gray-600">
                 Real-time monitoring of the network
