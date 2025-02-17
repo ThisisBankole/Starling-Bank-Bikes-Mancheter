@@ -39,3 +39,4 @@ uvloop==0.21.0
 watchfiles==1.0.0
 websockets==14.1
 gunicorn==21.2.0
+felt-python==0.0.6

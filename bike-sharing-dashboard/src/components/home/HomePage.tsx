@@ -3,16 +3,21 @@ import { StatsCards } from '../dashboard/StatsCards';
 import { useBikeData } from '../../hooks/useBikeData';
 import { useNavigate } from 'react-router-dom';
 import PopularStationsAnalytics from '../dashboard/PopularStationAnalytics';
+import InteractiveMap from '../dashboard/InteractiveMap';
 
 
 const HomePage = () => {
     const navigate = useNavigate();
     const { bikes, stations, locations, activeStations, loading, error} = useBikeData();
+
     const [, setShowDetails] = useState(false);
     const [, setSelectedCardIndex] = useState<number | null>(null);
 
     if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
     if (error) return <div className="text-red-500 text-center">{error}</div>;
+
+  
+  
   
     const handleViewDetails = (index: number) => {
       setSelectedCardIndex(index);
@@ -46,6 +51,8 @@ const HomePage = () => {
                 Real-time monitoring of the network
               </p>
             </div>
+
+            
             
   
             <StatsCards
@@ -55,7 +62,13 @@ const HomePage = () => {
               onViewDetails={handleViewDetails}
             />
 
+            <InteractiveMap/>   
+
+           
+
             <PopularStationsAnalytics activeStations={activeStations} />
+
+             
           </div>
         </div>
       </div>
