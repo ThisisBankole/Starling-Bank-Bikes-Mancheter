@@ -13,7 +13,7 @@ const config: {[key:string]: Config} = {
     // other development-specific configurations
     },
   production: {
-    API_URL: 'https://bike-sharing-api.ukwest-01.azurewebsites.net/api/v1', 
+    API_URL: 'https://bike-sharing-api-cng9c5dyfhghhya0.ukwest-01.azurewebsites.net/api/v1', 
     // other production-specific configurations
   }
 };
