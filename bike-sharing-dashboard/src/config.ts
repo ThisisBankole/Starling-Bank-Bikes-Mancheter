@@ -2,7 +2,7 @@
 
 interface Config {
   API_URL: string;
-  // add other properties if needed
+ 
 }
 
 const env = import.meta.env.MODE;
