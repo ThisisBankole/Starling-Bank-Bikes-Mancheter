@@ -23,6 +23,7 @@ async def test_endpoint():
 
 allowed_origins = [
     "https://bike-monitor-dkbkh8anaweqd0e3.ukwest-01.azurewebsites.net",
+    "https://bikes.desertnode.com",
     "http://localhost:3000",
     "http://localhost:5173",
     "https://bike-sharing-api-cng9c5dyfhghhya0.ukwest-01.azurewebsites.net"
@@ -39,7 +40,7 @@ app.add_middleware(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
