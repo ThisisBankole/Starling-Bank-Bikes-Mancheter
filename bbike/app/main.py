@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException # type: ignore
 from fastapi.middleware.cors import CORSMiddleware # type: ignore
-from fastapi.middleware.gzip import GZIPMiddleware # type: ignore
+from starlette.middleware.gzip import GZipMiddleware # type: ignore
 from app.core.config import settings
 from app.api.v1.router import api_router
 
@@ -32,9 +32,8 @@ allowed_origins = [
 
 
 app.add_middleware(
-    GZIPMiddleware,
-    minimum_size=1000, 
-    compresslevel=6     
+    GZipMiddleware,
+    minimum_size=1000    
 )
 
 
