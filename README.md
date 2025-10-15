@@ -77,14 +77,6 @@ docker run -p 8000:8000 starling-bike-backend
 - **Backend:** Python, FastAPI, Uvicorn
 - **Containerization:** Docker
 
-## Contributing
-
-Contributions and suggestions are welcome! Please open issues or submit pull requests.
-
-## License
-
-This project currently does not specify a license.
-
 ## Author
 
 [ThisisBankole](https://github.com/ThisisBankole)
