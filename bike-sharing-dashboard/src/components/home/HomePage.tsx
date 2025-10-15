@@ -1,10 +1,19 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { StatsCards } from '../dashboard/StatsCards';
 import { useBikeData } from '../../hooks/useBikeData';
 import { useNavigate } from 'react-router-dom';
-import PopularStationsAnalytics from '../dashboard/PopularStationAnalytics';
-import InteractiveMap from '../dashboard/InteractiveMap';
 
+
+const PopularStationsAnalytics = lazy(() => import('../dashboard/PopularStationAnalytics'));
+const InteractiveMap = lazy(() => import('../dashboard/InteractiveMap'));
+
+
+const ComponentSkeleton = () => (
+  <div className="bg-white rounded-lg shadow-md p-6 animate-pulse">
+    <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+    <div className="h-64 bg-gray-200 rounded"></div>
+  </div>
+);
 
 const HomePage = () => {
     const navigate = useNavigate();
@@ -62,11 +71,17 @@ const HomePage = () => {
               onViewDetails={handleViewDetails}
             />
 
-            <InteractiveMap/>   
+          
+            <Suspense fallback={<ComponentSkeleton />}>
+              <InteractiveMap/>   
+            </Suspense>
 
            
 
-            <PopularStationsAnalytics activeStations={activeStations} />
+         
+            <Suspense fallback={<ComponentSkeleton />}>
+              <PopularStationsAnalytics activeStations={activeStations} />
+            </Suspense>
 
              
           </div>

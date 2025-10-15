@@ -1,14 +1,26 @@
-// src/App.tsx
+
 import { Routes, Route } from 'react-router-dom';
-import HomePage from './components/home/HomePage';
-import { LocationsPage } from './components/locations/LocationsPage';
+import { lazy, Suspense } from 'react';
+
+
+const HomePage = lazy(() => import('./components/home/HomePage'));
+const LocationsPage = lazy(() => import('./components/locations/LocationsPage'));
+
+
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500" />
+  </div>
+);
 
 const App = () => {
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/locations" element={<LocationsPage />} />
-    </Routes>
+    <Suspense fallback={<LoadingFallback />}>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/locations" element={<LocationsPage />} />
+      </Routes>
+    </Suspense>
   );
 };
 

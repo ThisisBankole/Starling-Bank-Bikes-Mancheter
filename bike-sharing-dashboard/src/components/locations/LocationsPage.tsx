@@ -9,7 +9,7 @@ import { useState } from 'react';
 
 const ITEMS_PER_PAGE = 18;
 
-export const LocationsPage = () => {
+const LocationsPage = () => {
   const navigate = useNavigate();
   const { activeStations, loading, error } = useBikeData();
   const [currentPage, setCurrentPage] = useState(1);
@@ -137,3 +137,5 @@ export const LocationsPage = () => {
     </div>
   );
 };
+
+export default LocationsPage;
