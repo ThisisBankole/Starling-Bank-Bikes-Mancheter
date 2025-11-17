@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+
 import {
   Card,
   CardContent,
@@ -29,6 +30,8 @@ interface PopularStationsProps {
 }
 
 const PopularStationsAnalytics = ({ activeStations }: PopularStationsProps) => {
+
+
   const stationMetrics = useMemo(() => {
     // Calculate utilization rate for each station
     const stationUtilization = activeStations
@@ -73,6 +76,7 @@ const PopularStationsAnalytics = ({ activeStations }: PopularStationsProps) => {
           <TabsList className="self-start sm:self-center">
             <TabsTrigger value="utilization" className="text-sm">By Usage</TabsTrigger>
             <TabsTrigger value="capacity" className="text-sm">By Capacity</TabsTrigger>
+            
           </TabsList>
         </div>
       </CardHeader>
@@ -166,6 +170,7 @@ const PopularStationsAnalytics = ({ activeStations }: PopularStationsProps) => {
           </CardContent>
         </Card>
       </TabsContent>
+
     </Tabs>
   );
 };

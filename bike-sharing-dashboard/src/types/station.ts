@@ -7,6 +7,7 @@ export interface Station {
   capacity: number;
   status: {
     num_bikes_available: number;
+    num_ebikes_available: number; 
     num_docks_available: number;
     is_installed: boolean;
     is_renting: boolean;

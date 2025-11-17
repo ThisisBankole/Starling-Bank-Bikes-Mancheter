@@ -9,7 +9,7 @@ const env = import.meta.env.MODE;
 
 const config: {[key:string]: Config} = {
   development: {
-    API_URL: 'http://localhost:8000/api/v1'
+    API_URL: 'http://localhost:8002/api/v1'
     // other development-specific configurations
     },
   production: {

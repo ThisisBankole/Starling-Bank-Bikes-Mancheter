@@ -6,9 +6,7 @@ interface LocationCardProps {
   
   export const LocationCard = ({ station }: LocationCardProps) => {
     const numBikes = station.status?.num_bikes_available || 0;
-    const numEbikes = station.status?.vehicle_types_available.find(
-      vt => vt.vehicle_type_id === 'bbe'
-    )?.count || 0;
+    const numEbikes = station.status?.num_ebikes_available|| 0;
   
     return (
       <div className="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow">

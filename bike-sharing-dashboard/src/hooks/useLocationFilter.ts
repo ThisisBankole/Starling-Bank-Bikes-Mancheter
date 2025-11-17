@@ -1,4 +1,4 @@
-// hooks/useLocationFilter.ts
+
 import { useState, useMemo } from 'react';
 import { Station } from '../types';
 
@@ -22,9 +22,8 @@ export const useLocationFilter = (stations: Station[]) => {
     return stations.filter(station => {
       const matchesSearch = station.name.toLowerCase().includes(searchTerm.toLowerCase());
       const hasAvailableBikes = station.status?.num_bikes_available > 0;
-      const hasEbikes = station.status?.vehicle_types_available.some(
-        vt => vt.vehicle_type_id === 'bbe' && vt.count > 0
-      );
+      
+      const hasEbikes = station.status?.num_ebikes_available > 0;
       const isActive = station.status?.is_renting && station.status?.is_installed;
 
       return matchesSearch &&

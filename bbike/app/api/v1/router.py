@@ -1,7 +1,8 @@
 from fastapi import APIRouter # type: ignore
-from app.api.v1.endpoints import bikes, station
+from app.api.v1.endpoints import bikes, station, analytics
 
 api_router = APIRouter()
 
 api_router.include_router(bikes.router, tags=["bikes"])
 api_router.include_router(station.router, tags=["stations"])
+api_router.include_router(analytics.router, tags=["analytics"])

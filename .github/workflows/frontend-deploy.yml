@@ -31,6 +31,6 @@ jobs:
     - name: Deploy to Azure
       uses: azure/webapps-deploy@v2
       with:
-        app-name: 'bike-monitor'  # Changed to match your frontend app name
+        app-name: 'bike-monitor'  
         publish-profile: ${{ secrets.AZURE_WEBAPP_FRONTEND_PUBLISH_PROFILE }}
         package: ./bike-sharing-dashboard/build

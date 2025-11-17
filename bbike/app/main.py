@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware # type: ignore
 from starlette.middleware.gzip import GZipMiddleware # type: ignore
 from app.core.config import settings
 from app.api.v1.router import api_router
+from app.services.scheduler import start_scheduler
 
 from contextlib import asynccontextmanager
 
@@ -15,6 +16,11 @@ app = FastAPI(
     root_path="/api/v1",
     docs_url="/docs"
 )
+
+
+@app.on_event("startup")
+async def startup_event():
+    start_scheduler()
 
 @app.get("/test")
 async def test_endpoint():

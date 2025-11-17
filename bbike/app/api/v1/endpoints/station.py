@@ -1,97 +1,197 @@
-from fastapi import APIRouter, HTTPException # type: ignore
-from datetime import datetime
-from app.services.gbfs_service import gbfs_service
-from app.core.constants import GBFS_URLS
+from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
+from sqlalchemy import func
+from app.core.database import get_db
+from app.models.snapshot import StationSnapshot
 
 router = APIRouter()
 
-
-# Get all stations with their status
 @router.get("/stations/all")
-async def get_all_stations():
-    station_info = await gbfs_service.fetch_gbfs_data(GBFS_URLS["stations"], "stations")
-    station_status = await gbfs_service.fetch_gbfs_data(GBFS_URLS["station_status"], "station_status")
+async def get_all_stations(db: Session = Depends(get_db)):
+    latest_time = db.query(func.max(StationSnapshot.timestamp)).scalar()
     
-    stations = []
-    for station in station_info["data"]["stations"]:
-        status = next((s for s in station_status["data"]["stations"] if s["station_id"] == station["station_id"]), None)
-        stations.append({**station, "status": status})
-        
+    if not latest_time:
+        raise HTTPException(status_code=503, detail="No station data available yet")
+    
+    stations = db.query(StationSnapshot).filter(
+        StationSnapshot.timestamp == latest_time
+    ).all()
+    
     return {
-        "last_updated": datetime.fromtimestamp(station_info["last_updated"]).isoformat(),
-        "stations": stations
+        "last_updated": latest_time.isoformat(),
+        "stations": [
+            {
+                "station_id": s.station_id,
+                "name": s.name,
+                "lat": s.lat,
+                "lon": s.lon,
+                "capacity": s.capacity,
+                "status": {
+                    "num_bikes_available": s.num_bikes_available,
+                    "num_ebikes_available": s.num_ebikes_available,
+                    "num_docks_available": s.num_docks_available,
+                    "is_installed": s.is_installed,
+                    "is_renting": s.is_renting,
+                    "is_returning": s.is_returning
+                }
+            }
+            for s in stations
+        ]
     }
 
 @router.get("/stations")
-async def get_stations():
-    data = await gbfs_service.fetch_gbfs_data(GBFS_URLS["stations"], "stations")
+async def get_stations(db: Session = Depends(get_db)):
+    latest_time = db.query(func.max(StationSnapshot.timestamp)).scalar()
+    
+    if not latest_time:
+        raise HTTPException(status_code=503, detail="No station data available yet")
+    
+    stations = db.query(StationSnapshot).filter(
+        StationSnapshot.timestamp == latest_time
+    ).all()
+    
     return {
-        "last_updated": datetime.fromtimestamp(data["last_updated"]).isoformat(),
-        "stations": data["data"]["stations"]
+        "last_updated": latest_time.isoformat(),
+        "stations": [
+            {
+                "station_id": s.station_id,
+                "name": s.name,
+                "lat": s.lat,
+                "lon": s.lon,
+                "capacity": s.capacity
+            }
+            for s in stations
+        ]
     }
-    
-    
-@router.get("/stations/status")
-async def get_station_status():
-    data = await gbfs_service.fetch_gbfs_data(GBFS_URLS["station_status"], "station_status")
-    return {
-        "last_updated": datetime.fromtimestamp(data["last_updated"]).isoformat(),
-        "statuses": data["data"]["stations"]
-    }
-    
 
-#Get all active stations
+@router.get("/stations/status")
+async def get_station_status(db: Session = Depends(get_db)):
+    latest_time = db.query(func.max(StationSnapshot.timestamp)).scalar()
+    
+    if not latest_time:
+        raise HTTPException(status_code=503, detail="No station data available yet")
+    
+    stations = db.query(StationSnapshot).filter(
+        StationSnapshot.timestamp == latest_time
+    ).all()
+    
+    return {
+        "last_updated": latest_time.isoformat(),
+        "statuses": [
+            {
+                "station_id": s.station_id,
+                "num_bikes_available": s.num_bikes_available,
+                "num_ebikes_available": s.num_ebikes_available,
+                "num_docks_available": s.num_docks_available,
+                "is_installed": s.is_installed,
+                "is_renting": s.is_renting,
+                "is_returning": s.is_returning
+            }
+            for s in stations
+        ]
+    }
+
 @router.get("/stations/active")
-async def get_active_stations():
-    station_info = await gbfs_service.fetch_gbfs_data(GBFS_URLS["stations"], "stations")
-    station_status = await gbfs_service.fetch_gbfs_data(GBFS_URLS["station_status"], "station_status")
+async def get_active_stations(db: Session = Depends(get_db)):
+    latest_time = db.query(func.max(StationSnapshot.timestamp)).scalar()
     
-    active_stations = []
-    for station in station_info["data"]["stations"]:
-        status = next((s for s in station_status["data"]["stations"] if s["station_id"] == station["station_id"]), None)
-        if status and status["is_renting"]:
-            active_stations.append({**station, "status": status})
-            
+    if not latest_time:
+        raise HTTPException(status_code=503, detail="No station data available yet")
+    
+    # Only get stations that are renting
+    stations = db.query(StationSnapshot).filter(
+        StationSnapshot.timestamp == latest_time,
+        StationSnapshot.is_renting == True
+    ).all()
+    
     return {
-        "last_updated": datetime.fromtimestamp(station_info["last_updated"]).isoformat(),
-        "stations": active_stations
+        "last_updated": latest_time.isoformat(),
+        "stations": [
+            {
+                "station_id": s.station_id,
+                "name": s.name,
+                "lat": s.lat,
+                "lon": s.lon,
+                "capacity": s.capacity,
+                "status": {
+                    "num_bikes_available": s.num_bikes_available,
+                    "num_ebikes_available": s.num_ebikes_available,
+                    "num_docks_available": s.num_docks_available,
+                    "is_installed": s.is_installed,
+                    "is_renting": s.is_renting,
+                    "is_returning": s.is_returning
+                }
+            }
+            for s in stations
+        ]
     }
-    
-    
-#Get all inactive stations
+
 @router.get("/stations/inactive")
-async def get_inactive_stations():
-    station_info = await gbfs_service.fetch_gbfs_data(GBFS_URLS["stations"], "stations")
-    station_status = await gbfs_service.fetch_gbfs_data(GBFS_URLS["station_status"], "station_status")
+async def get_inactive_stations(db: Session = Depends(get_db)):
+    latest_time = db.query(func.max(StationSnapshot.timestamp)).scalar()
     
-    inactive_stations = []
-    for station in station_info["data"]["stations"]:
-        status = next((s for s in station_status["data"]["stations"] if s["station_id"] == station["station_id"]), None)
-        if status and not status["is_renting"]:
-            inactive_stations.append({**station, "status": status})
-            
+    if not latest_time:
+        raise HTTPException(status_code=503, detail="No station data available yet")
+    
+    # Only get stations that are NOT renting
+    stations = db.query(StationSnapshot).filter(
+        StationSnapshot.timestamp == latest_time,
+        StationSnapshot.is_renting == False
+    ).all()
+    
     return {
-        "last_updated": datetime.fromtimestamp(station_info["last_updated"]).isoformat(),
-        "stations": inactive_stations
+        "last_updated": latest_time.isoformat(),
+        "stations": [
+            {
+                "station_id": s.station_id,
+                "name": s.name,
+                "lat": s.lat,
+                "lon": s.lon,
+                "capacity": s.capacity,
+                "status": {
+                    "num_bikes_available": s.num_bikes_available,
+                    "num_ebikes_available": s.num_ebikes_available,
+                    "num_docks_available": s.num_docks_available,
+                    "is_installed": s.is_installed,
+                    "is_renting": s.is_renting,
+                    "is_returning": s.is_returning
+                }
+            }
+            for s in stations
+        ]
     }
-    
-    
+
 @router.get("/stations/{station_id}")
-async def get_station_detail(station_id: str):
-    #fetch station data
-    station_info = await gbfs_service.fetch_gbfs_data(GBFS_URLS["stations"], "stations")
-    station_status = await gbfs_service.fetch_gbfs_data(GBFS_URLS["station_status"], "station_status")
+async def get_station_detail(station_id: str, db: Session = Depends(get_db)):
+    latest_time = db.query(func.max(StationSnapshot.timestamp)).scalar()
     
-    #find station by id
-    station = next((s for s in station_info["data"]["stations"] if s["station_id"] == station_id), None)
+    if not latest_time:
+        raise HTTPException(status_code=503, detail="No station data available yet")
+    
+    # Find specific station
+    station = db.query(StationSnapshot).filter(
+        StationSnapshot.timestamp == latest_time,
+        StationSnapshot.station_id == station_id
+    ).first()
+    
     if not station:
         raise HTTPException(status_code=404, detail="Station not found")
     
-    status = next((s for s in station_status["data"]["stations"] if s["station_id"] == station_id), None)
-    
     return {
-        "last_updated": datetime.fromtimestamp(station_info["last_updated"]).isoformat(),
-        "station": {**station, "status": status}
+        "last_updated": latest_time.isoformat(),
+        "station": {
+            "station_id": station.station_id,
+            "name": station.name,
+            "lat": station.lat,
+            "lon": station.lon,
+            "capacity": station.capacity,
+            "status": {
+                "num_bikes_available": station.num_bikes_available,
+                "num_ebikes_available": station.num_ebikes_available,
+                "num_docks_available": station.num_docks_available,
+                "is_installed": station.is_installed,
+                "is_renting": station.is_renting,
+                "is_returning": station.is_returning
+            }
+        }
     }
-    
-

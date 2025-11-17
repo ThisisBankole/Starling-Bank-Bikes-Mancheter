@@ -3,10 +3,9 @@ import { StatsCards } from '../dashboard/StatsCards';
 import { useBikeData } from '../../hooks/useBikeData';
 import { useNavigate } from 'react-router-dom';
 
-
 const PopularStationsAnalytics = lazy(() => import('../dashboard/PopularStationAnalytics'));
 const InteractiveMap = lazy(() => import('../dashboard/InteractiveMap'));
-
+const HistoryChart = lazy(() => import('../dashboard/HistoryChart'));
 
 const ComponentSkeleton = () => (
   <div className="bg-white rounded-lg shadow-md p-6 animate-pulse">
@@ -25,27 +24,13 @@ const HomePage = () => {
     if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
     if (error) return <div className="text-red-500 text-center">{error}</div>;
 
-  
-  
-  
     const handleViewDetails = (index: number) => {
       setSelectedCardIndex(index);
       setShowDetails(true);
       
-      
-      // const details = [
-      //   `Total bikes: ${bikes.total} (${bikes.regular} regular, ${bikes.electric} electric)`,
-      //   `Total bikes: ${bikes.total} (${bikes.regular} regular, ${bikes.electric} electric)`,
-      //   `E-bikes range: ${bikes.ebikes.map(bike => 
-      //     `${bike.bike_id}: ${bike.current_range_meters}m`).join(', ')}`,
-      //   `Locations: ${locations.join(', ')}`
-      // ];
-
       if (index == 2) {
         navigate('/locations')
       }
-      
-  
     };
   
     return (
@@ -61,9 +46,6 @@ const HomePage = () => {
               </p>
             </div>
 
-            
-            
-  
             <StatsCards
               bikes={bikes}
               stations={stations}
@@ -71,19 +53,17 @@ const HomePage = () => {
               onViewDetails={handleViewDetails}
             />
 
-          
             <Suspense fallback={<ComponentSkeleton />}>
               <InteractiveMap/>   
             </Suspense>
 
-           
+            <Suspense fallback={<ComponentSkeleton />}>
+              <HistoryChart />
+            </Suspense>
 
-         
             <Suspense fallback={<ComponentSkeleton />}>
               <PopularStationsAnalytics activeStations={activeStations} />
             </Suspense>
-
-             
           </div>
         </div>
       </div>
