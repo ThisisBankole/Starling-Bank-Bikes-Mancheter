@@ -1,0 +1,19 @@
+{
+  "name": "bike-api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "migrate:local": "wrangler d1 migrations apply bikes --local",
+    "migrate:remote": "wrangler d1 migrations apply bikes --remote"
+  },
+  "dependencies": {
+    "hono": "^4.6.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260701.0",
+    "typescript": "^5.7.0",
+    "wrangler": "^4.107.0"
+  }
+}

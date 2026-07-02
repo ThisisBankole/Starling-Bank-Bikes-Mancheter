@@ -9,12 +9,12 @@ const env = import.meta.env.MODE;
 
 const config: {[key:string]: Config} = {
   development: {
-    API_URL: 'http://localhost:8002/api/v1'
-    // other development-specific configurations
+    // Local Worker (wrangler dev) serving the API from D1
+    API_URL: 'http://localhost:8787/api/v1'
     },
   production: {
-    API_URL: 'https://bike-sharing-api-cng9c5dyfhghhya0.ukwest-01.azurewebsites.net/api/v1', 
-    // other production-specific configurations
+    // Same origin: the Worker serves both the static frontend and /api/v1
+    API_URL: '/api/v1',
   }
 };
 

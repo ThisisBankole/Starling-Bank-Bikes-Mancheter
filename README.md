@@ -23,59 +23,58 @@ A dashboard for real-time monitoring and analytics of bike-sharing stations in M
   │   └── main.tsx               # App entry point
   ├── index.html                 # Root HTML
   ├── vite.config.ts             # Vite config
-  ├── tailwind.config.js         # Tailwind config
-  └── eslint.config.js           # Linting config
+  └── tailwind.config.js         # Tailwind config
 
-- bbike/                   # Backend API (Python, FastAPI, Uvicorn)
-  ├── app/
-  │   └── main.py               # FastAPI application entry
-  └── Dockerfile                # Containerization for backend
+- worker/                   # Backend (Cloudflare Worker, TypeScript, Hono, D1)
+  ├── src/
+  │   ├── index.ts              # Hono app, CORS, static assets, cron entry
+  │   ├── snapshot.ts           # GBFS feed -> D1 snapshot job (10-min cron)
+  │   └── routes/               # API routes (bikes, stations, analytics)
+  ├── migrations/               # D1 schema migrations
+  └── wrangler.jsonc            # Worker + D1 + cron + custom domain config
+
+- bbike/                    # Legacy backend (Python, FastAPI) - replaced by worker/
 ```
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js & npm (for frontend)
-- Python 3.10+ (for backend)
-- Docker (optional, for backend containerization)
+- Node.js & npm
+- A Cloudflare account (Workers + D1) for deployment
 
-### Installation
+### Local development
+
+**Backend (Worker + local D1):**
+
+```sh
+cd worker
+npm install
+npm run migrate:local   # first time only
+npx wrangler dev        # API on http://localhost:8787
+```
 
 **Frontend:**
 
 ```sh
 cd bike-sharing-dashboard
 npm install
-npm run dev
+npm run dev             # UI on http://localhost:5173, calls the local worker
 ```
 
-**Backend:**
+### Deployment
 
-```sh
-cd bbike
-pip install -r requirements.txt
-uvicorn app.main:app --reload
-```
-
-Alternatively, run the backend with Docker:
-
-```sh
-cd bbike
-docker build -t starling-bike-backend .
-docker run -p 8000:8000 starling-bike-backend
-```
-
-### Usage
-
-- Visit [localhost:5173](http://localhost:5173) (or the port Vite specifies) for the dashboard UI.
-- Backend API will run on [localhost:8000](http://localhost:8000).
+Live at [cycle.arrakis.house](https://cycle.arrakis.house). Pushes to `main` that touch
+`worker/` or `bike-sharing-dashboard/` trigger `.github/workflows/deploy.yml`, which builds
+the frontend, applies D1 migrations, and runs `wrangler deploy`. The Worker serves the
+static frontend and the `/api/v1` API from the same origin, and a 10-minute cron snapshots
+the Beryl GBFS feeds into D1.
 
 ## Technologies Used
 
 - **Frontend:** React, TypeScript, Tailwind CSS, Vite, Radix UI
-- **Backend:** Python, FastAPI, Uvicorn
-- **Containerization:** Docker
+- **Backend:** Cloudflare Workers, Hono, D1 (SQLite), TypeScript
+- **Legacy backend (`bbike/`):** Python, FastAPI — no longer deployed
 
 ## Author
 

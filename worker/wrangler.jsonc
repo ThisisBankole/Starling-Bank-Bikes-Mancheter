@@ -1,0 +1,30 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "bike-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-01",
+  "account_id": "879c551bba49d343e138e289428ab384",
+  "routes": [{ "pattern": "cycle.arrakis.house", "custom_domain": true }],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "bikes",
+      "database_id": "86c58590-a27d-423c-bbc4-4fccc6807629"
+    }
+  ],
+  // Snapshot cadence — matches the APScheduler interval in bbike/app/services/scheduler.py
+  "triggers": {
+    "crons": ["*/10 * * * *"]
+  },
+  "observability": {
+    "enabled": true
+  },
+  // Vite build of bike-sharing-dashboard; unknown paths fall back to index.html (SPA)
+  "assets": {
+    "directory": "../bike-sharing-dashboard/build",
+    "not_found_handling": "single-page-application",
+    // Only /api/* reaches the Hono app; all other paths are served by the
+    // asset layer, whose SPA fallback returns index.html for client routes
+    "run_worker_first": ["/api/*"]
+  }
+}
