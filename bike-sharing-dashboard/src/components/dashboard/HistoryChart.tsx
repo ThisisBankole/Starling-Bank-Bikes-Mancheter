@@ -24,24 +24,53 @@ const RANGES = [
   { label: '7d', hours: 168 },
 ];
 
+// Tick marks aligned to clock boundaries: hourly (6h), 2-hourly (24h), daily (7d)
+const buildTicks = (minMs: number, maxMs: number, hours: number): number[] => {
+  const ticks: number[] = [];
+  if (hours > 48) {
+    const d = new Date(minMs);
+    d.setHours(24, 0, 0, 0); // next local midnight
+    while (d.getTime() <= maxMs) {
+      ticks.push(d.getTime());
+      d.setDate(d.getDate() + 1);
+    }
+  } else {
+    const step = (hours <= 6 ? 1 : 2) * 3600_000;
+    for (let t = Math.ceil(minMs / step) * step; t <= maxMs; t += step) {
+      ticks.push(t);
+    }
+  }
+  return ticks;
+};
+
 const HistoryChart = () => {
   const [hours, setHours] = useState(24);
   const { data, loading, error } = useSnapshotHistory(hours);
   const rangeLabel = RANGES.find(r => r.hours === hours)?.label ?? `${hours}h`;
 
-  // Include the day when the window spans more than 48 hours
-  const formatTime = (timestamp: string) =>
-    new Date(timestamp).toLocaleTimeString('en-GB', {
-      ...(hours > 48 ? { weekday: 'short' as const } : {}),
+  const formatTick = (ms: number) =>
+    hours > 48
+      ? new Date(ms).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric' })
+      : new Date(ms).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+  const formatTooltipLabel = (ms: number) =>
+    new Date(ms).toLocaleString('en-GB', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
       hour: '2-digit',
       minute: '2-digit'
     });
 
   const chartData = data.map(point => ({
-    time: formatTime(point.timestamp),
+    t: Date.parse(point.timestamp),
     bikes: point.bikes_available,
     stations: point.stations_active
   })).reverse(); // Reverse to show oldest to newest
+
+  const ticks = chartData.length > 1
+    ? buildTicks(chartData[0].t, chartData[chartData.length - 1].t, hours)
+    : undefined;
 
   return (
     <Card>
@@ -84,9 +113,13 @@ const HistoryChart = () => {
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
-                dataKey="time"
+                dataKey="t"
+                type="number"
+                scale="time"
+                domain={['dataMin', 'dataMax']}
+                ticks={ticks}
+                tickFormatter={formatTick}
                 tick={{ fontSize: 12 }}
-                interval="preserveStartEnd"
               />
               {/* Zoomed domains: the fleet moves by tens against a ~650 total,
                   so a 0-based axis renders the lines flat */}
@@ -103,7 +136,7 @@ const HistoryChart = () => {
                 domain={['dataMin - 3', 'dataMax + 3']}
                 allowDecimals={false}
               />
-              <Tooltip />
+              <Tooltip labelFormatter={(ms) => formatTooltipLabel(Number(ms))} />
               <Legend />
               <Line
                 yAxisId="bikes"
