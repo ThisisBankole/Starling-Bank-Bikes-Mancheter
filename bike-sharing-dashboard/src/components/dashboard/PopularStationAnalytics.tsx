@@ -68,7 +68,7 @@ const PopularStationsAnalytics = ({ activeStations }: PopularStationsProps) => {
       topStations,
       highCapacityStations
     };
-  }, [activeStations, popularStations]);
+  }, [activeStations]);
 
   return (
     <Tabs defaultValue="utilization" className="w-full space-y-4">
