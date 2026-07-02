@@ -32,9 +32,12 @@ interface PopularStationsProps {
 const operationalStatus = (station: Station) =>
   station.status.is_renting && station.status.is_returning ? 'Fully Operational' : 'Limited Service';
 
+// Bikes present vs capacity, so the bar always agrees with the "x / y" column.
+// (Beryl reports free docks independently of bike counts, so dock-based
+// occupancy contradicts the displayed fraction.)
 const utilizationOf = (station: Station) =>
   station.capacity > 0
-    ? ((station.capacity - station.status.num_docks_available) / station.capacity) * 100
+    ? Math.min((station.status.num_bikes_available / station.capacity) * 100, 100)
     : 0;
 
 const PopularStationsAnalytics = ({ activeStations }: PopularStationsProps) => {
