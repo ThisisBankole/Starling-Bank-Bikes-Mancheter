@@ -94,7 +94,7 @@ const PopularStationsAnalytics = ({ activeStations }: PopularStationsProps) => {
                 <TableRow>
                   <TableHead>Station Name</TableHead>
                   <TableHead>Utilization</TableHead>
-                  <TableHead>Available Bikes</TableHead>
+                  <TableHead>Available / Capacity</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
