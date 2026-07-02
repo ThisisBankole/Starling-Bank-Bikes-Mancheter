@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import config from '../config';
+import { useCity } from '../context/CityContext';
 
 interface LatestSnapshot {
   timestamp: string;
@@ -31,14 +32,16 @@ interface PopularStation {
 }
 
 export const useLatestSnapshot = () => {
+  const { city } = useCity();
   const [data, setData] = useState<LatestSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setLoading(true);
     const fetchData = async () => {
       try {
-        const response = await fetch(`${config.API_URL}/snapshots/latest`);
+        const response = await fetch(`${config.API_URL}/snapshots/latest?city=${city}`);
         const result = await response.json();
         setData(result);
       } catch (err) {
@@ -49,22 +52,24 @@ export const useLatestSnapshot = () => {
     };
 
     fetchData();
-    const interval = setInterval(fetchData, 60000); 
+    const interval = setInterval(fetchData, 60000);
     return () => clearInterval(interval);
-  }, []);
+  }, [city]);
 
   return { data, loading, error };
 };
 
 export const useSnapshotHistory = (hours: number = 24) => {
+  const { city } = useCity();
   const [data, setData] = useState<HistoryDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setLoading(true);
     const fetchData = async () => {
       try {
-        const response = await fetch(`${config.API_URL}/snapshots/history?hours=${hours}`);
+        const response = await fetch(`${config.API_URL}/snapshots/history?hours=${hours}&city=${city}`);
         const result = await response.json();
         setData(result.history || []);
       } catch (err) {
@@ -77,20 +82,22 @@ export const useSnapshotHistory = (hours: number = 24) => {
     fetchData();
     const interval = setInterval(fetchData, 300_000);
     return () => clearInterval(interval);
-  }, [hours]);
+  }, [hours, city]);
 
   return { data, loading, error };
 };
 
 export const usePopularStations = (limit: number = 10) => {
+  const { city } = useCity();
   const [data, setData] = useState<PopularStation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setLoading(true);
     const fetchData = async () => {
       try {
-        const response = await fetch(`${config.API_URL}/stations/popular?limit=${limit}`);
+        const response = await fetch(`${config.API_URL}/stations/popular?limit=${limit}&city=${city}`);
         const result = await response.json();
         setData(result.popular_stations || []);
       } catch (err) {
@@ -103,7 +110,7 @@ export const usePopularStations = (limit: number = 10) => {
     fetchData();
     const interval = setInterval(fetchData, 300_000);
     return () => clearInterval(interval);
-  }, [limit]);
+  }, [limit, city]);
 
   return { data, loading, error };
 };

@@ -2,14 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, ZoomControl } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { Info, Check, X } from 'lucide-react';
 import { Station } from '../../types/station';
 import config from '../../config';
+import { useCity } from '../../context/CityContext';
 
-// Greater Manchester bounds
-const GM_BOUNDS: L.LatLngBoundsLiteral = [
+// Fallback when /cities hasn't loaded yet (Greater Manchester)
+const FALLBACK_BOUNDS: L.LatLngBoundsLiteral = [
   [53.3331, -2.5313], // Southwest corner
   [53.6895, -1.9074]  // Northeast corner
 ];
+const FALLBACK_CENTER = { lat: 53.4807, lon: -2.2426 };
 
 const createMarkerIcon = (numBikesAvailable: number, capacity: number) => {
   const ratio = numBikesAvailable / capacity;
@@ -36,15 +39,17 @@ const createMarkerIcon = (numBikesAvailable: number, capacity: number) => {
 };
 
 const InteractiveMap: React.FC = () => {
+  const { city, cityInfo } = useCity();
   const [stations, setStations] = useState<Station[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showLegend, setShowLegend] = useState(false);
 
   useEffect(() => {
+    setLoading(true);
     const fetchStations = async () => {
       try {
-        const response = await fetch(`${config.API_URL}/stations/active`);
+        const response = await fetch(`${config.API_URL}/stations/active?city=${city}`);
         if (!response.ok) {
           throw new Error('Failed to fetch stations');
         }
@@ -61,9 +66,12 @@ const InteractiveMap: React.FC = () => {
     fetchStations();
     const interval = setInterval(fetchStations, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [city]);
 
-  const defaultCenter = { lat: 53.4807, lng: -2.2426 };
+  const bounds: L.LatLngBoundsLiteral = cityInfo
+    ? [cityInfo.bounds.sw, cityInfo.bounds.ne]
+    : FALLBACK_BOUNDS;
+  const center = cityInfo?.center ?? FALLBACK_CENTER;
 
   if (loading) {
     return <div className="w-full h-[100vh] flex items-center justify-center">Loading stations...</div>;
@@ -76,20 +84,21 @@ const InteractiveMap: React.FC = () => {
   return (
     <div className="w-full h-[50vh] relative">
       <MapContainer
-        center={[defaultCenter.lat, defaultCenter.lng]}
+        key={city} // remount so Leaflet picks up the new center/bounds
+        center={[center.lat, center.lon]}
         zoom={13}
         className="w-full h-full"
-        maxBounds={GM_BOUNDS}
+        maxBounds={bounds}
         minZoom={11}
         maxZoom={18}
-        bounds={GM_BOUNDS}
+        bounds={bounds}
         boundsOptions={{ padding: [50, 50] }}
         zoomControl={true}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          bounds={GM_BOUNDS}
+          bounds={bounds}
         />
 
         <ZoomControl position="topright" />
@@ -116,8 +125,11 @@ const InteractiveMap: React.FC = () => {
                     <span className="font-bold">{station.capacity}</span>
                   </div>
                   <div className="mt-2 pt-2 border-t border-gray-200">
-                    <div className="text-sm md:text-base">
-                      <div>Renting: {station.status.is_renting ? '✅' : '❌'}</div>
+                    <div className="flex items-center gap-1.5 text-sm md:text-base">
+                      <span>Renting:</span>
+                      {station.status.is_renting
+                        ? <Check className="h-4 w-4 text-green-600" aria-label="Yes" />
+                        : <X className="h-4 w-4 text-red-500" aria-label="No" />}
                     </div>
                   </div>
                 </div>
@@ -133,7 +145,7 @@ const InteractiveMap: React.FC = () => {
         className="absolute bottom-4 right-4 bg-white p-2 rounded-full shadow-lg z-[1000] md:hidden"
         aria-label="Toggle legend"
       >
-        ℹ️
+        <Info className="h-5 w-5 text-gray-600" />
       </button>
 
       {/* Legend */}

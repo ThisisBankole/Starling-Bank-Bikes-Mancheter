@@ -1,14 +1,23 @@
 import { Hono } from "hono";
 import type { Env } from "../index";
+import { resolveCity } from "../cities";
 
 // Ported from bbike/app/api/v1/endpoints/analytics.py
 
 const analytics = new Hono<{ Bindings: Env }>();
 
 analytics.get("/snapshots/latest", async (c) => {
+  const city = resolveCity(c.req.query("city"));
+  if (!city) return c.json({ detail: "Unknown city" }, 400);
   const [bikeTs, stationTs] = await Promise.all([
-    c.env.DB.prepare("SELECT MAX(timestamp) AS ts FROM bike_snapshots").first<string>("ts"),
-    c.env.DB.prepare("SELECT MAX(timestamp) AS ts FROM station_snapshots").first<string>("ts"),
+    c.env.DB
+      .prepare("SELECT MAX(timestamp) AS ts FROM bike_snapshots WHERE city = ?")
+      .bind(city)
+      .first<string>("ts"),
+    c.env.DB
+      .prepare("SELECT MAX(timestamp) AS ts FROM station_snapshots WHERE city = ?")
+      .bind(city)
+      .first<string>("ts"),
   ]);
   // Python returns a 200 with an error body here, not a 5xx
   if (!bikeTs || !stationTs) return c.json({ error: "No snapshots available yet" });
@@ -20,18 +29,18 @@ analytics.get("/snapshots/latest", async (c) => {
                 SUM(CASE WHEN is_reserved = 0 AND is_disabled = 0 THEN 1 ELSE 0 END) AS available,
                 SUM(is_reserved) AS reserved,
                 SUM(is_disabled) AS disabled
-         FROM bike_snapshots WHERE timestamp = ?`
+         FROM bike_snapshots WHERE city = ? AND timestamp = ?`
       )
-      .bind(bikeTs),
+      .bind(city, bikeTs),
     c.env.DB
       .prepare(
         `SELECT COUNT(*) AS total,
                 SUM(CASE WHEN is_installed = 1 AND is_renting = 1 THEN 1 ELSE 0 END) AS active,
                 SUM(num_bikes_available) AS total_bikes,
                 SUM(num_ebikes_available) AS total_ebikes
-         FROM station_snapshots WHERE timestamp = ?`
+         FROM station_snapshots WHERE city = ? AND timestamp = ?`
       )
-      .bind(stationTs),
+      .bind(city, stationTs),
   ]);
 
   const b = bikeAgg.results[0] as Record<string, number>;
@@ -54,6 +63,8 @@ analytics.get("/snapshots/latest", async (c) => {
 });
 
 analytics.get("/snapshots/history", async (c) => {
+  const city = resolveCity(c.req.query("city"));
+  if (!city) return c.json({ detail: "Unknown city" }, 400);
   const hours = Number(c.req.query("hours") ?? 24);
   const cutoff = new Date(Date.now() - hours * 3600_000).toISOString();
 
@@ -63,26 +74,30 @@ analytics.get("/snapshots/history", async (c) => {
       .prepare(
         `SELECT timestamp,
                 SUM(CASE WHEN is_reserved = 0 AND is_disabled = 0 THEN 1 ELSE 0 END) AS bikes_available
-         FROM bike_snapshots WHERE timestamp >= ?
+         FROM bike_snapshots WHERE city = ? AND timestamp >= ?
          GROUP BY timestamp ORDER BY timestamp DESC`
       )
-      .bind(cutoff),
+      .bind(city, cutoff),
     c.env.DB
       .prepare(
         `SELECT timestamp,
                 SUM(is_renting) AS stations_active,
                 SUM(num_bikes_available) AS total_bikes_at_stations
-         FROM station_snapshots WHERE timestamp >= ?
+         FROM station_snapshots WHERE city = ? AND timestamp >= ?
          GROUP BY timestamp`
       )
-      .bind(cutoff),
+      .bind(city, cutoff),
   ]);
 
-  const stationByTs = new Map(
-    (stationRows.results as { timestamp: string; stations_active: number; total_bikes_at_stations: number }[]).map(
-      (r) => [r.timestamp, r]
-    )
-  );
+  const stationList = stationRows.results as {
+    timestamp: string;
+    stations_active: number;
+    total_bikes_at_stations: number;
+  }[];
+
+  // Bike and station snapshots for a city share a timestamp within a cron tick,
+  // but tolerate drift by pairing each bike row with the nearest earlier station row
+  const stationByTs = new Map(stationList.map((r) => [r.timestamp, r]));
   const history = (bikeRows.results as { timestamp: string; bikes_available: number }[]).map((r) => ({
     timestamp: r.timestamp,
     bikes_available: r.bikes_available,
@@ -94,9 +109,12 @@ analytics.get("/snapshots/history", async (c) => {
 });
 
 analytics.get("/stations/popular", async (c) => {
+  const city = resolveCity(c.req.query("city"));
+  if (!city) return c.json({ detail: "Unknown city" }, 400);
   const limit = Number(c.req.query("limit") ?? 10);
   const hasData = await c.env.DB
-    .prepare("SELECT MAX(timestamp) AS ts FROM station_snapshots")
+    .prepare("SELECT MAX(timestamp) AS ts FROM station_snapshots WHERE city = ?")
+    .bind(city)
     .first<string>("ts");
   if (!hasData) return c.json({ error: "No data available" });
 
@@ -104,11 +122,11 @@ analytics.get("/stations/popular", async (c) => {
   const { results } = await c.env.DB
     .prepare(
       `SELECT station_id, name, AVG(num_bikes_available) AS avg_bikes
-       FROM station_snapshots WHERE timestamp >= ?
+       FROM station_snapshots WHERE city = ? AND timestamp >= ?
        GROUP BY station_id, name
        ORDER BY avg_bikes DESC LIMIT ?`
     )
-    .bind(cutoff, limit)
+    .bind(city, cutoff, limit)
     .all<{ station_id: string; name: string; avg_bikes: number }>();
 
   return c.json({

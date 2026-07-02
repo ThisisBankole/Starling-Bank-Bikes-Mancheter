@@ -2,6 +2,8 @@ import { useState, lazy, Suspense } from 'react';
 import { StatsCards } from '../dashboard/StatsCards';
 import { useBikeData } from '../../hooks/useBikeData';
 import { useNavigate } from 'react-router-dom';
+import { useCity } from '../../context/CityContext';
+import { CitySelect } from '../ui/city-select';
 
 const PopularStationsAnalytics = lazy(() => import('../dashboard/PopularStationAnalytics'));
 const InteractiveMap = lazy(() => import('../dashboard/InteractiveMap'));
@@ -16,6 +18,7 @@ const ComponentSkeleton = () => (
 
 const HomePage = () => {
     const navigate = useNavigate();
+    const { cityInfo } = useCity();
     const { bikes, stations, locations, activeStations, lastUpdated, loading, error} = useBikeData();
 
     const [, setShowDetails] = useState(false);
@@ -37,19 +40,22 @@ const HomePage = () => {
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
         <div className="container mx-auto py-8 px-4">
           <div className="flex flex-col gap-8">
-            <div className="text-center md:text-left">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent mb-2 md:mb-4">
-                Cycle Tracker
-              </h1>
-              <p className="text-sm sm:text-base md:text-lg text-gray-600">
-                Real-time monitoring of the Manchester network
-              </p>
-              {lastUpdated && (
-                <p className="mt-1 flex items-center justify-center md:justify-start gap-1.5 text-xs text-gray-400">
-                  <span className="inline-block h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                  Live
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+              <div className="text-center md:text-left">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent mb-2 md:mb-4">
+                  Cycle Tracker
+                </h1>
+                <p className="text-sm sm:text-base md:text-lg text-gray-600">
+                  Real-time monitoring of the {cityInfo?.name ?? 'Manchester'} network
                 </p>
-              )}
+                {lastUpdated && (
+                  <p className="mt-1 flex items-center justify-center md:justify-start gap-1.5 text-xs text-gray-400">
+                    <span className="inline-block h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                    Live
+                  </p>
+                )}
+              </div>
+              <CitySelect className="w-full md:w-72" />
             </div>
 
             <StatsCards

@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { takeSnapshot } from "./snapshot";
+import { CITIES, DEFAULT_CITY } from "./cities";
 import bikes from "./routes/bikes";
 import stations from "./routes/stations";
 import analytics from "./routes/analytics";
@@ -22,6 +23,13 @@ app.use(
 );
 
 app.get("/api/v1/health", (c) => c.json({ status: "ok" }));
+
+app.get("/api/v1/cities", (c) =>
+  c.json({
+    default: DEFAULT_CITY,
+    cities: CITIES.map(({ id, name, center, bounds }) => ({ id, name, center, bounds })),
+  })
+);
 
 app.route("/api/v1", bikes);
 // analytics registers /stations/popular, which must precede stations' /stations/:station_id

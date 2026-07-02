@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import type { Env } from "../index";
+import { resolveCity } from "../cities";
 
 // Ported from bbike/app/api/v1/endpoints/bikes.py
 // 503 only when there is no snapshot at all; filtered queries may return empty lists.
@@ -14,19 +15,24 @@ type BikeRow = {
   vehicle_type_id: string;
 };
 
-async function latestBikeTimestamp(db: D1Database): Promise<string | null> {
-  return db.prepare("SELECT MAX(timestamp) AS ts FROM bike_snapshots").first<string>("ts");
+async function latestBikeTimestamp(db: D1Database, city: string): Promise<string | null> {
+  return db
+    .prepare("SELECT MAX(timestamp) AS ts FROM bike_snapshots WHERE city = ?")
+    .bind(city)
+    .first<string>("ts");
 }
 
 const bikes = new Hono<{ Bindings: Env }>();
 
 bikes.get("/bikes", async (c) => {
-  const ts = await latestBikeTimestamp(c.env.DB);
+  const city = resolveCity(c.req.query("city"));
+  if (!city) return c.json({ detail: "Unknown city" }, 400);
+  const ts = await latestBikeTimestamp(c.env.DB, city);
   if (!ts) return c.json({ detail: "No bike data available yet" }, 503);
   const { results } = await c.env.DB.prepare(
-    "SELECT * FROM bike_snapshots WHERE timestamp = ?"
+    "SELECT * FROM bike_snapshots WHERE city = ? AND timestamp = ?"
   )
-    .bind(ts)
+    .bind(city, ts)
     .all<BikeRow>();
   return c.json({
     last_updated: ts,
@@ -42,12 +48,14 @@ bikes.get("/bikes", async (c) => {
 });
 
 bikes.get("/bikes/available", async (c) => {
-  const ts = await latestBikeTimestamp(c.env.DB);
+  const city = resolveCity(c.req.query("city"));
+  if (!city) return c.json({ detail: "Unknown city" }, 400);
+  const ts = await latestBikeTimestamp(c.env.DB, city);
   if (!ts) return c.json({ detail: "No bike data available yet" }, 503);
   const { results } = await c.env.DB.prepare(
-    "SELECT * FROM bike_snapshots WHERE timestamp = ? AND is_reserved = 0 AND is_disabled = 0"
+    "SELECT * FROM bike_snapshots WHERE city = ? AND timestamp = ? AND is_reserved = 0 AND is_disabled = 0"
   )
-    .bind(ts)
+    .bind(city, ts)
     .all<BikeRow>();
   return c.json({
     last_updated: ts,
@@ -61,12 +69,14 @@ bikes.get("/bikes/available", async (c) => {
 });
 
 bikes.get("/ebikes", async (c) => {
-  const ts = await latestBikeTimestamp(c.env.DB);
+  const city = resolveCity(c.req.query("city"));
+  if (!city) return c.json({ detail: "Unknown city" }, 400);
+  const ts = await latestBikeTimestamp(c.env.DB, city);
   if (!ts) return c.json({ detail: "No bike data available yet" }, 503);
   const { results } = await c.env.DB.prepare(
-    "SELECT * FROM bike_snapshots WHERE timestamp = ? AND vehicle_type_id = 'bbe'"
+    "SELECT * FROM bike_snapshots WHERE city = ? AND timestamp = ? AND vehicle_type_id = 'bbe'"
   )
-    .bind(ts)
+    .bind(city, ts)
     .all<BikeRow>();
   return c.json({
     last_updated: ts,

@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import type { Env } from "../index";
+import { resolveCity } from "../cities";
 
 // Ported from bbike/app/api/v1/endpoints/station.py
 
@@ -18,8 +19,11 @@ type StationRow = {
   is_returning: number;
 };
 
-async function latestStationTimestamp(db: D1Database): Promise<string | null> {
-  return db.prepare("SELECT MAX(timestamp) AS ts FROM station_snapshots").first<string>("ts");
+async function latestStationTimestamp(db: D1Database, city: string): Promise<string | null> {
+  return db
+    .prepare("SELECT MAX(timestamp) AS ts FROM station_snapshots WHERE city = ?")
+    .bind(city)
+    .first<string>("ts");
 }
 
 function stationStatus(s: StationRow) {
@@ -47,23 +51,27 @@ function stationFull(s: StationRow) {
 const stations = new Hono<{ Bindings: Env }>();
 
 stations.get("/stations/all", async (c) => {
-  const ts = await latestStationTimestamp(c.env.DB);
+  const city = resolveCity(c.req.query("city"));
+  if (!city) return c.json({ detail: "Unknown city" }, 400);
+  const ts = await latestStationTimestamp(c.env.DB, city);
   if (!ts) return c.json({ detail: "No station data available yet" }, 503);
   const { results } = await c.env.DB.prepare(
-    "SELECT * FROM station_snapshots WHERE timestamp = ?"
+    "SELECT * FROM station_snapshots WHERE city = ? AND timestamp = ?"
   )
-    .bind(ts)
+    .bind(city, ts)
     .all<StationRow>();
   return c.json({ last_updated: ts, stations: results.map(stationFull) });
 });
 
 stations.get("/stations", async (c) => {
-  const ts = await latestStationTimestamp(c.env.DB);
+  const city = resolveCity(c.req.query("city"));
+  if (!city) return c.json({ detail: "Unknown city" }, 400);
+  const ts = await latestStationTimestamp(c.env.DB, city);
   if (!ts) return c.json({ detail: "No station data available yet" }, 503);
   const { results } = await c.env.DB.prepare(
-    "SELECT * FROM station_snapshots WHERE timestamp = ?"
+    "SELECT * FROM station_snapshots WHERE city = ? AND timestamp = ?"
   )
-    .bind(ts)
+    .bind(city, ts)
     .all<StationRow>();
   return c.json({
     last_updated: ts,
@@ -78,12 +86,14 @@ stations.get("/stations", async (c) => {
 });
 
 stations.get("/stations/status", async (c) => {
-  const ts = await latestStationTimestamp(c.env.DB);
+  const city = resolveCity(c.req.query("city"));
+  if (!city) return c.json({ detail: "Unknown city" }, 400);
+  const ts = await latestStationTimestamp(c.env.DB, city);
   if (!ts) return c.json({ detail: "No station data available yet" }, 503);
   const { results } = await c.env.DB.prepare(
-    "SELECT * FROM station_snapshots WHERE timestamp = ?"
+    "SELECT * FROM station_snapshots WHERE city = ? AND timestamp = ?"
   )
-    .bind(ts)
+    .bind(city, ts)
     .all<StationRow>();
   return c.json({
     last_updated: ts,
@@ -92,35 +102,41 @@ stations.get("/stations/status", async (c) => {
 });
 
 stations.get("/stations/active", async (c) => {
-  const ts = await latestStationTimestamp(c.env.DB);
+  const city = resolveCity(c.req.query("city"));
+  if (!city) return c.json({ detail: "Unknown city" }, 400);
+  const ts = await latestStationTimestamp(c.env.DB, city);
   if (!ts) return c.json({ detail: "No station data available yet" }, 503);
   const { results } = await c.env.DB.prepare(
-    "SELECT * FROM station_snapshots WHERE timestamp = ? AND is_renting = 1"
+    "SELECT * FROM station_snapshots WHERE city = ? AND timestamp = ? AND is_renting = 1"
   )
-    .bind(ts)
+    .bind(city, ts)
     .all<StationRow>();
   return c.json({ last_updated: ts, stations: results.map(stationFull) });
 });
 
 stations.get("/stations/inactive", async (c) => {
-  const ts = await latestStationTimestamp(c.env.DB);
+  const city = resolveCity(c.req.query("city"));
+  if (!city) return c.json({ detail: "Unknown city" }, 400);
+  const ts = await latestStationTimestamp(c.env.DB, city);
   if (!ts) return c.json({ detail: "No station data available yet" }, 503);
   const { results } = await c.env.DB.prepare(
-    "SELECT * FROM station_snapshots WHERE timestamp = ? AND is_renting = 0"
+    "SELECT * FROM station_snapshots WHERE city = ? AND timestamp = ? AND is_renting = 0"
   )
-    .bind(ts)
+    .bind(city, ts)
     .all<StationRow>();
   return c.json({ last_updated: ts, stations: results.map(stationFull) });
 });
 
 // Must stay the last-registered /stations route so static paths match first
 stations.get("/stations/:station_id", async (c) => {
-  const ts = await latestStationTimestamp(c.env.DB);
+  const city = resolveCity(c.req.query("city"));
+  if (!city) return c.json({ detail: "Unknown city" }, 400);
+  const ts = await latestStationTimestamp(c.env.DB, city);
   if (!ts) return c.json({ detail: "No station data available yet" }, 503);
   const station = await c.env.DB.prepare(
-    "SELECT * FROM station_snapshots WHERE timestamp = ? AND station_id = ?"
+    "SELECT * FROM station_snapshots WHERE city = ? AND timestamp = ? AND station_id = ?"
   )
-    .bind(ts, c.req.param("station_id"))
+    .bind(city, ts, c.req.param("station_id"))
     .first<StationRow>();
   if (!station) return c.json({ detail: "Station not found" }, 404);
   return c.json({ last_updated: ts, station: stationFull(station) });

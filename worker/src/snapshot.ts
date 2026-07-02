@@ -1,6 +1,6 @@
 import type { Env } from "./index";
+import { CITIES, type City } from "./cities";
 
-const GBFS_BASE = "https://beryl-gbfs-production.web.app/v2_2/Greater_Manchester";
 // gbfs_service.py accepted feeds up to 2x the 5-minute max_age
 const MAX_STALENESS_SECONDS = 600;
 const RETENTION_DAYS = 90;
@@ -34,9 +34,9 @@ type StationStatus = {
   vehicle_types_available?: { vehicle_type_id?: string; count?: number }[];
 };
 
-async function fetchFeed<T>(path: string): Promise<GbfsFeed<T>> {
-  const res = await fetch(`${GBFS_BASE}/${path}`);
-  if (!res.ok) throw new Error(`GBFS ${path}: HTTP ${res.status}`);
+async function fetchFeed<T>(base: string, path: string): Promise<GbfsFeed<T>> {
+  const res = await fetch(`${base}/${path}`);
+  if (!res.ok) throw new Error(`GBFS ${base}/${path}: HTTP ${res.status}`);
   return res.json();
 }
 
@@ -44,11 +44,11 @@ function isFresh(feed: GbfsFeed<unknown>): boolean {
   return Date.now() / 1000 - feed.last_updated < MAX_STALENESS_SECONDS;
 }
 
-export async function takeSnapshot(env: Env): Promise<void> {
+async function snapshotCity(env: Env, city: City): Promise<void> {
   const [bikes, stationInfo, stationStatus] = await Promise.all([
-    fetchFeed<{ bikes: Bike[] }>("free_bike_status.json"),
-    fetchFeed<{ stations: StationInfo[] }>("station_information.json"),
-    fetchFeed<{ stations: StationStatus[] }>("station_status.json"),
+    fetchFeed<{ bikes: Bike[] }>(city.gbfsBase, "free_bike_status.json"),
+    fetchFeed<{ stations: StationInfo[] }>(city.gbfsBase, "station_information.json"),
+    fetchFeed<{ stations: StationStatus[] }>(city.gbfsBase, "station_status.json"),
   ]);
 
   const timestamp = new Date().toISOString();
@@ -57,12 +57,13 @@ export async function takeSnapshot(env: Env): Promise<void> {
   if (isFresh(bikes)) {
     const insertBike = env.DB.prepare(
       `INSERT INTO bike_snapshots
-         (timestamp, bike_id, lat, lon, is_reserved, is_disabled, vehicle_type_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`
+         (city, timestamp, bike_id, lat, lon, is_reserved, is_disabled, vehicle_type_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
     );
     for (const b of bikes.data.bikes) {
       statements.push(
         insertBike.bind(
+          city.id,
           timestamp,
           b.bike_id,
           b.lat,
@@ -74,22 +75,23 @@ export async function takeSnapshot(env: Env): Promise<void> {
       );
     }
   } else {
-    console.warn(`Skipping bike snapshot: feed stale (last_updated=${bikes.last_updated})`);
+    console.warn(`[${city.id}] Skipping bike snapshot: feed stale (last_updated=${bikes.last_updated})`);
   }
 
   if (isFresh(stationStatus)) {
     const statusMap = new Map(stationStatus.data.stations.map((s) => [s.station_id, s]));
     const insertStation = env.DB.prepare(
       `INSERT INTO station_snapshots
-         (timestamp, station_id, name, lat, lon, capacity,
+         (city, timestamp, station_id, name, lat, lon, capacity,
           num_bikes_available, num_ebikes_available, num_docks_available,
           is_installed, is_renting, is_returning)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     );
     for (const s of stationInfo.data.stations) {
       const status = statusMap.get(s.station_id);
       statements.push(
         insertStation.bind(
+          city.id,
           timestamp,
           s.station_id,
           s.name,
@@ -106,18 +108,30 @@ export async function takeSnapshot(env: Env): Promise<void> {
       );
     }
   } else {
-    console.warn(`Skipping station snapshot: feed stale (last_updated=${stationStatus.last_updated})`);
+    console.warn(`[${city.id}] Skipping station snapshot: feed stale (last_updated=${stationStatus.last_updated})`);
+  }
+
+  if (statements.length > 0) {
+    await env.DB.batch(statements);
+  }
+  console.log(
+    `[${city.id}] Snapshot ${timestamp}: ${isFresh(bikes) ? bikes.data.bikes.length : 0} bikes, ` +
+      `${isFresh(stationStatus) ? stationInfo.data.stations.length : 0} stations`
+  );
+}
+
+export async function takeSnapshot(env: Env): Promise<void> {
+  // One city failing (stale feed, network) must not block the others
+  const results = await Promise.allSettled(CITIES.map((city) => snapshotCity(env, city)));
+  for (const [i, r] of results.entries()) {
+    if (r.status === "rejected") console.error(`[${CITIES[i].id}] Snapshot failed:`, r.reason);
   }
 
   // Cutoff computed in JS: stored timestamps are ISO-8601 with 'T', which
   // doesn't compare correctly against SQLite's datetime('now') format
   const cutoff = new Date(Date.now() - RETENTION_DAYS * 86400_000).toISOString();
-  statements.push(env.DB.prepare("DELETE FROM bike_snapshots WHERE timestamp < ?").bind(cutoff));
-  statements.push(env.DB.prepare("DELETE FROM station_snapshots WHERE timestamp < ?").bind(cutoff));
-
-  await env.DB.batch(statements);
-  console.log(
-    `Snapshot ${timestamp}: ${isFresh(bikes) ? bikes.data.bikes.length : 0} bikes, ` +
-      `${isFresh(stationStatus) ? stationInfo.data.stations.length : 0} stations`
-  );
+  await env.DB.batch([
+    env.DB.prepare("DELETE FROM bike_snapshots WHERE timestamp < ?").bind(cutoff),
+    env.DB.prepare("DELETE FROM station_snapshots WHERE timestamp < ?").bind(cutoff),
+  ]);
 }

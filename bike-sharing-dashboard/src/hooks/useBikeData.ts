@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import config  from '../config';
 import { Bike, EBike, Station } from '../types';
+import { useCity } from '../context/CityContext';
 
 
 // interface ApiResponse<T> {
@@ -11,6 +12,7 @@ import { Bike, EBike, Station } from '../types';
 // }
 
 export const useBikeData = () => {
+    const { city } = useCity();
     const [bikes, setBikes] = useState<Bike[]>([]);
     const [ebikes, setEbikes] = useState<EBike[]>([]);
     const [activeStations, setActiveStations] = useState<Station[]>([]);
@@ -20,13 +22,14 @@ export const useBikeData = () => {
 
     useEffect(() => {
       let cancelled = false;
+      setLoading(true); // full reload when the city changes
 
       const fetchData = async () => {
         try {
           const [bikesRes, ebikesRes, activeStationsRes] = await Promise.all([
-            fetch(`${config.API_URL}/bikes`),
-            fetch(`${config.API_URL}/ebikes`),
-            fetch(`${config.API_URL}/stations/active`)
+            fetch(`${config.API_URL}/bikes?city=${city}`),
+            fetch(`${config.API_URL}/ebikes?city=${city}`),
+            fetch(`${config.API_URL}/stations/active?city=${city}`)
           ]);
 
           const [bikesData, ebikesData, activeStationsData] = await Promise.all([
@@ -67,7 +70,7 @@ export const useBikeData = () => {
         cancelled = true;
         clearInterval(interval);
       };
-    }, []);
+    }, [city]);
   
     return {
       bikes: {
