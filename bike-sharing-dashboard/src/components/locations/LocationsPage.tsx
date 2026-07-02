@@ -6,6 +6,7 @@ import { SearchBar } from './SearchBar';
 import { useNavigate } from 'react-router-dom';
 import { Home, ArrowUpDown, ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { CitySelect } from '../ui/city-select';
 
 const ITEMS_PER_PAGE = 18;
 
@@ -29,6 +30,21 @@ const LocationsPage = () => {
   useEffect(() => {
     setVisibleCount(ITEMS_PER_PAGE);
   }, [searchTerm, filters, sortBy]);
+
+  // Default sort is "nearest": ask for location once on load. If the user
+  // declines (or it fails), quietly fall back to most-bikes — the explicit
+  // dropdown path still surfaces errors via geoError.
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setSortBy('bikes');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setUserLocation({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+      () => setSortBy('bikes')
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSortChange = (value: string) => {
     if (value !== 'nearest') {
@@ -88,13 +104,16 @@ const LocationsPage = () => {
                 </p>
                 </div>
 
-                <button
-                    onClick={() => navigate('/')}
-                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                >
-                    <Home className="h-4 w-4" />
-                    <span className="sm:inline">Back to Dashboard</span>
-                </button>
+                <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-2">
+                    <CitySelect className="w-full sm:w-64" />
+                    <button
+                        onClick={() => navigate('/')}
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                    >
+                        <Home className="h-4 w-4" />
+                        <span className="sm:inline">Back to Dashboard</span>
+                    </button>
+                </div>
             </div>
 
       <div className="flex flex-col sm:flex-row gap-4 items-center w-full">

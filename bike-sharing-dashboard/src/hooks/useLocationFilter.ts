@@ -28,7 +28,7 @@ export const distanceKm = (from: UserLocation, to: { lat: number; lon: number })
 
 export const useLocationFilter = (stations: Station[], userLocation: UserLocation | null = null) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<SortOption>('bikes');
+  const [sortBy, setSortBy] = useState<SortOption>('nearest');
   const [filters, setFilters] = useState<FilterOptions>({
     hasAvailableBikes: false,
     hasEbikes: false,
@@ -61,6 +61,9 @@ export const useLocationFilter = (stations: Station[], userLocation: UserLocatio
       case 'nearest':
         if (userLocation) {
           filtered.sort((a, b) => distanceKm(userLocation, a) - distanceKm(userLocation, b));
+        } else {
+          // No location (yet) — most bikes is the sensible interim order
+          filtered.sort((a, b) => (b.status?.num_bikes_available ?? 0) - (a.status?.num_bikes_available ?? 0));
         }
         break;
       case 'bikes':
