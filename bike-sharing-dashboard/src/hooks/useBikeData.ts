@@ -14,52 +14,59 @@ export const useBikeData = () => {
     const [bikes, setBikes] = useState<Bike[]>([]);
     const [ebikes, setEbikes] = useState<EBike[]>([]);
     const [activeStations, setActiveStations] = useState<Station[]>([]);
+    const [lastUpdated, setLastUpdated] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-  
+
     useEffect(() => {
+      let cancelled = false;
+
       const fetchData = async () => {
         try {
-          console.log('Starting fetch...');
-      
           const [bikesRes, ebikesRes, activeStationsRes] = await Promise.all([
             fetch(`${config.API_URL}/bikes`),
             fetch(`${config.API_URL}/ebikes`),
-            fetch(`${config.API_URL}/stations/active`)  // New endpoint
+            fetch(`${config.API_URL}/stations/active`)
           ]);
-  
-          console.log('Fetched data from API');
-  
+
           const [bikesData, ebikesData, activeStationsData] = await Promise.all([
             bikesRes.json(),
             ebikesRes.json(),
             activeStationsRes.json()
           ]);
-  
-          console.log('Data parsed:', bikesData, ebikesData, activeStationsData);
-  
+
+          if (cancelled) return;
+
           if (!activeStationsData?.stations) {
-              console.error('Missing stations data structure:', activeStationsData);
+              setError('Station data unavailable');
               return;
           }
-  
+
           const allBikes = bikesData.data || [];
-          const availableEbikes = ebikesData.ebikes.filter((bike: EBike) => 
+          const availableEbikes = (ebikesData.ebikes || []).filter((bike: EBike) =>
             !bike.is_reserved && !bike.is_disabled
           );
-  
+
           setBikes(allBikes);
           setEbikes(availableEbikes);
           setActiveStations(activeStationsData.stations || []);
+          setLastUpdated(bikesData.last_updated ?? null);
+          setError(null);
 
         } catch (err) {
-          setError(err instanceof Error ? err.message : 'Failed to fetch data');
+          if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to fetch data');
         } finally {
-          setLoading(false);
+          if (!cancelled) setLoading(false);
         }
       };
-  
+
       fetchData();
+      // Silent refresh: loading stays false, so the page doesn't flash
+      const interval = setInterval(fetchData, 60_000);
+      return () => {
+        cancelled = true;
+        clearInterval(interval);
+      };
     }, []);
   
     return {
@@ -77,6 +84,7 @@ export const useBikeData = () => {
       },
       locations: activeStations.map(station => station.name),
       activeStations,  // Add this if you need the full station data with status
+      lastUpdated,
       loading,
       error
     };

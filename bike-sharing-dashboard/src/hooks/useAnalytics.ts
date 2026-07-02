@@ -75,6 +75,8 @@ export const useSnapshotHistory = (hours: number = 24) => {
     };
 
     fetchData();
+    const interval = setInterval(fetchData, 300_000);
+    return () => clearInterval(interval);
   }, [hours]);
 
   return { data, loading, error };
@@ -99,6 +101,8 @@ export const usePopularStations = (limit: number = 10) => {
     };
 
     fetchData();
+    const interval = setInterval(fetchData, 300_000);
+    return () => clearInterval(interval);
   }, [limit]);
 
   return { data, loading, error };

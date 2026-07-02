@@ -16,7 +16,7 @@ const ComponentSkeleton = () => (
 
 const HomePage = () => {
     const navigate = useNavigate();
-    const { bikes, stations, locations, activeStations, loading, error} = useBikeData();
+    const { bikes, stations, locations, activeStations, lastUpdated, loading, error} = useBikeData();
 
     const [, setShowDetails] = useState(false);
     const [, setSelectedCardIndex] = useState<number | null>(null);
@@ -44,6 +44,12 @@ const HomePage = () => {
               <p className="text-sm sm:text-base md:text-lg text-gray-600">
                 Real-time monitoring of the network
               </p>
+              {lastUpdated && (
+                <p className="mt-1 flex items-center justify-center md:justify-start gap-1.5 text-xs text-gray-400">
+                  <span className="inline-block h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                  Live &middot; data from {new Date(lastUpdated).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} &middot; auto-refreshes every minute
+                </p>
+              )}
             </div>
 
             <StatsCards
