@@ -22,6 +22,13 @@ export const CITIES: City[] = [
     center: { lat: 50.7205, lon: -1.8795 },
     bounds: { sw: [50.66, -2.08], ne: [50.82, -1.66] },
   },
+  {
+    id: "bradford",
+    name: "Bradford",
+    gbfsBase: "https://beryl-gbfs-production.web.app/v2_2/Bradford",
+    center: { lat: 53.8121, lon: -1.7709 },
+    bounds: { sw: [53.77, -1.82], ne: [53.85, -1.72] },
+  },
 ];
 
 export const DEFAULT_CITY = "manchester";
