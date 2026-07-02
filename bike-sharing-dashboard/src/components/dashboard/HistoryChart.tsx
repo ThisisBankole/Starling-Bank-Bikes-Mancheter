@@ -88,13 +88,26 @@ const HistoryChart = () => {
                 tick={{ fontSize: 12 }}
                 interval="preserveStartEnd"
               />
-              <YAxis yAxisId="bikes" tick={{ fontSize: 12 }} />
-              <YAxis yAxisId="stations" orientation="right" tick={{ fontSize: 12 }} />
+              {/* Zoomed domains: the fleet moves by tens against a ~650 total,
+                  so a 0-based axis renders the lines flat */}
+              <YAxis
+                yAxisId="bikes"
+                tick={{ fontSize: 12 }}
+                domain={['dataMin - 5', 'dataMax + 5']}
+                allowDecimals={false}
+              />
+              <YAxis
+                yAxisId="stations"
+                orientation="right"
+                tick={{ fontSize: 12 }}
+                domain={['dataMin - 3', 'dataMax + 3']}
+                allowDecimals={false}
+              />
               <Tooltip />
               <Legend />
               <Line
                 yAxisId="bikes"
-                type="monotone"
+                type="natural"
                 dataKey="bikes"
                 stroke="#3b82f6"
                 name="Available Bikes"
@@ -103,7 +116,7 @@ const HistoryChart = () => {
               />
               <Line
                 yAxisId="stations"
-                type="monotone"
+                type="natural"
                 dataKey="stations"
                 stroke="#10b981"
                 name="Active Stations"

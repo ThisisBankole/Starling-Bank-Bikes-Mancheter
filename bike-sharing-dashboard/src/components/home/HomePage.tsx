@@ -47,7 +47,7 @@ const HomePage = () => {
               {lastUpdated && (
                 <p className="mt-1 flex items-center justify-center md:justify-start gap-1.5 text-xs text-gray-400">
                   <span className="inline-block h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                  Live &middot; data from {new Date(lastUpdated).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} &middot; auto-refreshes every minute
+                  Live
                 </p>
               )}
             </div>
