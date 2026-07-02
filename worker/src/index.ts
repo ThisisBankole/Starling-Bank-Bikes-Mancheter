@@ -11,17 +11,12 @@ export type Env = {
 
 const app = new Hono<{ Bindings: Env }>();
 
-// Same-origin once the frontend moves onto this Worker (Phase 4); until then,
-// allow the existing frontend hosts, mirroring bbike/app/main.py
+// Production is same-origin (the Worker serves the frontend); CORS is only
+// for the Vite dev server hitting a local or deployed Worker
 app.use(
   "/api/*",
   cors({
-    origin: [
-      "https://bikes.desertnode.com",
-      "https://bike-monitor-dkbkh8anaweqd0e3.ukwest-01.azurewebsites.net",
-      "http://localhost:3000",
-      "http://localhost:5173",
-    ],
+    origin: ["http://localhost:5173", "http://localhost:3000"],
     credentials: true,
   })
 );

@@ -32,8 +32,6 @@ A dashboard for real-time monitoring and analytics of bike-sharing stations in M
   │   └── routes/               # API routes (bikes, stations, analytics)
   ├── migrations/               # D1 schema migrations
   └── wrangler.jsonc            # Worker + D1 + cron + custom domain config
-
-- bbike/                    # Legacy backend (Python, FastAPI) - replaced by worker/
 ```
 
 ## Getting Started
@@ -74,7 +72,6 @@ the Beryl GBFS feeds into D1.
 
 - **Frontend:** React, TypeScript, Tailwind CSS, Vite, Radix UI
 - **Backend:** Cloudflare Workers, Hono, D1 (SQLite), TypeScript
-- **Legacy backend (`bbike/`):** Python, FastAPI — no longer deployed
 
 ## Author
 
