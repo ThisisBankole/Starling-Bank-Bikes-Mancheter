@@ -1,30 +1,65 @@
 import { useBikeData } from '../../hooks/useBikeData';
-import { useLocationFilter } from '../../hooks/useLocationFilter';
+import { useLocationFilter, distanceKm, SortOption, UserLocation } from '../../hooks/useLocationFilter';
 import { FilterBar } from './FilterBar';
 import { LocationCard } from './LocationCard';
 import { SearchBar } from './SearchBar';
 import { useNavigate } from 'react-router-dom';
-import { Home } from 'lucide-react'
-import { useState } from 'react';
+import { Home, ArrowUpDown, ChevronDown } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 const ITEMS_PER_PAGE = 18;
 
 const LocationsPage = () => {
   const navigate = useNavigate();
   const { activeStations, loading, error } = useBikeData();
-  const [currentPage, setCurrentPage] = useState(1);
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
+  const [geoError, setGeoError] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const {
     searchTerm,
     setSearchTerm,
     filters,
     setFilters,
+    sortBy,
+    setSortBy,
     filteredStations
-  } = useLocationFilter(activeStations || []);
+  } = useLocationFilter(activeStations || [], userLocation);
 
-  // Pagination
-    const totalPages = Math.ceil(filteredStations.length / ITEMS_PER_PAGE);
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const paginatedStations = filteredStations.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  // Back to the top of the list whenever the result set changes shape
+  useEffect(() => {
+    setVisibleCount(ITEMS_PER_PAGE);
+  }, [searchTerm, filters, sortBy]);
+
+  const handleSortChange = (value: string) => {
+    if (value !== 'nearest') {
+      setSortBy(value as SortOption);
+      return;
+    }
+    if (userLocation) {
+      setSortBy('nearest');
+      return;
+    }
+    if (!navigator.geolocation) {
+      setGeoError('Location is not supported by this browser');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLocation({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+        setGeoError(null);
+        setSortBy('nearest');
+      },
+      () => setGeoError('Could not get your location — check browser permissions')
+    );
+  };
+
+  const clearAll = () => {
+    setSearchTerm('');
+    setFilters({ hasAvailableBikes: false, hasEbikes: false, isActive: true });
+  };
+
+  const visibleStations = filteredStations.slice(0, visibleCount);
+  const stationsWithBikes = filteredStations.filter(s => (s.status?.num_bikes_available ?? 0) > 0).length;
 
   if (loading) {
     return (
@@ -45,10 +80,11 @@ const LocationsPage = () => {
   return (
     <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-4 sm:space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="space-y-1 sm:space-y-2">
+            <div className="space-y-1">
                 <h1 className="text-2xl sm:text-3xl font-bold">Locations</h1>
-                <p className="text-sm sm:text-base text-gray-500">
-                    {filteredStations.length} locations found
+                <p className="flex items-center gap-1.5 text-sm text-gray-500">
+                    <span className="inline-block h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                    Live &middot; {filteredStations.length} stations &middot; {stationsWithBikes} with bikes
                 </p>
                 </div>
 
@@ -68,72 +104,66 @@ const LocationsPage = () => {
                 onSearchChange={setSearchTerm}
             />
         </div>
-        <div className="w-full sm:w-1/3">
-            <FilterBar
-            filters={filters}
-            onFilterChange={setFilters}
-            />
+        <div className="relative w-full sm:w-1/3">
+            <ArrowUpDown className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <select
+              value={sortBy}
+              onChange={(e) => handleSortChange(e.target.value)}
+              aria-label="Sort stations"
+              className="w-full appearance-none p-3 pl-9 pr-9 border rounded-lg bg-card shadow-sm text-sm"
+            >
+              <option value="bikes">Most bikes</option>
+              <option value="ebikes">Most e-bikes</option>
+              <option value="name">Name A&ndash;Z</option>
+              <option value="nearest">Nearest to me</option>
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
         </div>
-
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {paginatedStations.map((station) => (
-          <LocationCard key={station.station_id} station={station} />
-        ))}
-      </div>
+      <FilterBar
+        filters={filters}
+        onFilterChange={setFilters}
+      />
 
-      {totalPages > 1 && (
-        <div className='flex flex-wrap justify-center gap-2 mt-4 sm:mt-6'>
-            <button
-                onClick={() => setCurrentPage((prev: number) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-1 rounded bg-blue-100 text-blue-600 disabled:opacity-50 text-sm sm:text-base"
-          >
-            Previous
+      {geoError && (
+        <p className="text-sm text-red-500">{geoError}</p>
+      )}
+
+      {filteredStations.length === 0 ? (
+        <div className="rounded-lg border border-dashed border-gray-300 p-10 text-center">
+          <p className="text-gray-500">No stations match your search and filters.</p>
+          <button onClick={clearAll} className="mt-2 text-sm text-blue-500 hover:underline">
+            Clear search and filters
           </button>
-
-          <div className="flex flex-wrap gap-2 justify-center">
-            {[...Array(totalPages)].map((_, index) => {
-              // Show first page, last page, and pages around current page
-              if (
-                index === 0 ||
-                index === totalPages - 1 ||
-                (index >= currentPage - 2 && index <= currentPage + 2)
-              ) {
-                return (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentPage(index + 1)}
-                    className={`px-3 py-1 rounded text-sm sm:text-base ${
-                      currentPage === index + 1 
-                        ? 'bg-blue-500 text-white' 
-                        : 'bg-blue-100 text-blue-600'
-                    }`}
-                  >
-                    {index + 1}
-                  </button>
-                );
-              } else if (
-                index === currentPage - 3 ||
-                index === currentPage + 3
-              ) {
-                return <span key={index} className="px-2">...</span>;
-              }
-              return null;
-            })}
+        </div>
+      ) : (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {visibleStations.map((station) => (
+              <LocationCard
+                key={station.station_id}
+                station={station}
+                distanceKm={userLocation ? distanceKm(userLocation, station) : undefined}
+              />
+            ))}
           </div>
 
-        <button
-            onClick={() => setCurrentPage((prev:number) => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className="px-3 py-1 rounded bg-blue-100 text-blue-600 disabled:opacity-50 text-sm sm:text-base"
-          >
-            Next
-          </button>     
-
-        </div>  
-    )}
+          <div className="flex flex-col items-center gap-2 mt-4 sm:mt-6">
+            {visibleCount < filteredStations.length && (
+              <button
+                onClick={() => setVisibleCount((count) => count + ITEMS_PER_PAGE)}
+                className="px-4 py-2 rounded-lg bg-blue-500 text-white text-sm hover:bg-blue-600 transition-colors"
+              >
+                Load {Math.min(ITEMS_PER_PAGE, filteredStations.length - visibleCount)} more
+              </button>
+            )}
+            <p className="text-xs text-gray-400">
+              Showing {visibleStations.length} of {filteredStations.length}
+            </p>
+          </div>
+        </>
+      )}
     </div>
   );
 };
