@@ -1,5 +1,5 @@
 
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 
 
@@ -20,7 +20,8 @@ const App = () => {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/locations" element={<LocationsPage />} />
-        <Route path="/developers" element={<DevelopersPage />} />
+        <Route path="/docs" element={<DevelopersPage />} />
+        <Route path="/developers" element={<Navigate to="/docs" replace />} />
       </Routes>
     </Suspense>
   );

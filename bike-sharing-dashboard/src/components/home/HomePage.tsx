@@ -2,9 +2,10 @@ import { useState, lazy, Suspense } from 'react';
 import { StatsCards } from '../dashboard/StatsCards';
 import { useBikeData } from '../../hooks/useBikeData';
 import { useNavigate, Link } from 'react-router-dom';
-import { Code } from 'lucide-react';
+import { BookOpen, Code } from 'lucide-react';
 import { useCity } from '../../context/CityContext';
 import { CitySelect } from '../ui/city-select';
+import { Logo } from '../ui/logo';
 
 const PopularStationsAnalytics = lazy(() => import('../dashboard/PopularStationAnalytics'));
 const InteractiveMap = lazy(() => import('../dashboard/InteractiveMap'));
@@ -39,24 +40,33 @@ const HomePage = () => {
   
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+        <header className="border-b border-gray-200 bg-white">
+          <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-4">
+            <Logo />
+            <div className="flex w-full sm:w-auto items-center gap-4">
+              <CitySelect className="w-full sm:w-64" />
+              <Link
+                to="/docs"
+                className="flex shrink-0 items-center gap-1.5 text-sm text-gray-600 transition-colors hover:text-blue-600"
+              >
+                <BookOpen className="h-4 w-4" />
+                Docs
+              </Link>
+            </div>
+          </div>
+        </header>
         <div className="container mx-auto py-8 px-4">
           <div className="flex flex-col gap-8">
-            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-              <div className="text-center md:text-left">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent mb-2 md:mb-4">
-                  Cycle Tracker
-                </h1>
-                <p className="text-sm sm:text-base md:text-lg text-gray-600">
-                  Real-time monitoring of the {cityInfo?.name ?? 'Manchester'} network
+            <div className="text-center md:text-left">
+              <p className="text-sm sm:text-base md:text-lg text-gray-600">
+                Real-time monitoring of the {cityInfo?.name ?? 'Manchester'} network
+              </p>
+              {lastUpdated && (
+                <p className="mt-1 flex items-center justify-center md:justify-start gap-1.5 text-xs text-gray-400">
+                  <span className="inline-block h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                  Live
                 </p>
-                {lastUpdated && (
-                  <p className="mt-1 flex items-center justify-center md:justify-start gap-1.5 text-xs text-gray-400">
-                    <span className="inline-block h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                    Live
-                  </p>
-                )}
-              </div>
-              <CitySelect className="w-full md:w-72" />
+              )}
             </div>
 
             <StatsCards
@@ -80,11 +90,11 @@ const HomePage = () => {
 
             <footer className="pb-4 text-center">
               <Link
-                to="/developers"
+                to="/docs"
                 className="inline-flex items-center gap-1.5 text-sm text-gray-400 transition-colors hover:text-blue-500"
               >
                 <Code className="h-4 w-4" />
-                Developers &amp; API — connect your AI agent
+                Data &amp; Docs
               </Link>
             </footer>
           </div>

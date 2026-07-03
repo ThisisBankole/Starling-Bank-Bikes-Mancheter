@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSlug from 'rehype-slug';
-import { Copy, Check, Bike, ArrowLeft } from 'lucide-react';
+import { Copy, Check, ArrowLeft } from 'lucide-react';
+import { Logo } from '../ui/logo';
 
 // Content lives in plain markdown files; add or edit a file and redeploy.
 const docModules = import.meta.glob('../../content/docs/*.md', {
@@ -137,11 +138,10 @@ const DevelopersPage = () => {
     <div className="min-h-screen bg-white">
       <header className="border-b border-gray-200">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-2 text-gray-900">
-            <Bike className="h-5 w-5 text-blue-500" />
-            <span className="font-semibold">Cycle Tracker</span>
+          <div className="flex items-center gap-2">
+            <Logo />
             <span className="text-gray-300">/</span>
-            <span className="text-gray-500">Developers</span>
+            <span className="text-gray-500">Docs</span>
           </div>
           <Link
             to="/"
