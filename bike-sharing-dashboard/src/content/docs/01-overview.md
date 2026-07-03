@@ -1,6 +1,6 @@
 # Cycle Tracker API
 
-Live bike-share availability for **Manchester**, **Bournemouth, Christchurch & Poole**, and **Bradford**, built on Beryl's public GBFS feeds. Data refreshes every 10 minutes and includes 90 days of history.
+Live bike-share availability built on public GBFS feeds. Data refreshes every 10 minutes and includes 90 days of history.
 
 Free to use. No API key required.
 

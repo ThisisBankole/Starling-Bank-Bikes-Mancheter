@@ -22,6 +22,15 @@ Go to **Settings → Connectors → Add custom connector** and paste the server 
 https://cycle.arrakis.house/mcp
 ```
 
+## Codex
+
+Add to `~/.codex/config.toml` (or a trusted project's `.codex/config.toml`):
+
+```toml
+[mcp_servers.cycle-tracker]
+url = "https://cycle.arrakis.house/mcp"
+```
+
 ## Cursor
 
 Add to `~/.cursor/mcp.json` (or the project's `.cursor/mcp.json`):
@@ -49,6 +58,63 @@ Add to your `mcp.json`:
     }
   }
 }
+```
+
+## GitHub Copilot CLI
+
+Run `/mcp add` inside Copilot CLI (transport **HTTP**), or add to `~/.copilot/mcp-config.json`:
+
+```json
+{
+  "mcpServers": {
+    "cycle-tracker": {
+      "type": "http",
+      "url": "https://cycle.arrakis.house/mcp"
+    }
+  }
+}
+```
+
+## opencode
+
+Add to `opencode.json` (project) or `~/.config/opencode/opencode.json`:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "cycle-tracker": {
+      "type": "remote",
+      "url": "https://cycle.arrakis.house/mcp"
+    }
+  }
+}
+```
+
+## Google Antigravity
+
+Open **Settings → Customizations → Open MCP Config** (`mcp_config.json`) and add — note Antigravity uses `serverUrl`, not `url`:
+
+```json
+{
+  "mcpServers": {
+    "cycle-tracker": {
+      "serverUrl": "https://cycle.arrakis.house/mcp"
+    }
+  }
+}
+```
+
+Then hit refresh in the Installed MCP Servers section.
+
+## Hermes
+
+Add to `~/.hermes/config.yaml`, then run `/reload-mcp`:
+
+```yaml
+mcp_servers:
+  cycle_tracker:
+    url: "https://cycle.arrakis.house/mcp"
 ```
 
 ## Other clients (stdio only)
