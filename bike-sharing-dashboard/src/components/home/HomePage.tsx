@@ -1,7 +1,8 @@
 import { useState, lazy, Suspense } from 'react';
 import { StatsCards } from '../dashboard/StatsCards';
 import { useBikeData } from '../../hooks/useBikeData';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { Code } from 'lucide-react';
 import { useCity } from '../../context/CityContext';
 import { CitySelect } from '../ui/city-select';
 
@@ -76,6 +77,16 @@ const HomePage = () => {
             <Suspense fallback={<ComponentSkeleton />}>
               <PopularStationsAnalytics activeStations={activeStations} />
             </Suspense>
+
+            <footer className="pb-4 text-center">
+              <Link
+                to="/developers"
+                className="inline-flex items-center gap-1.5 text-sm text-gray-400 transition-colors hover:text-blue-500"
+              >
+                <Code className="h-4 w-4" />
+                Developers &amp; API — connect your AI agent
+              </Link>
+            </footer>
           </div>
         </div>
       </div>

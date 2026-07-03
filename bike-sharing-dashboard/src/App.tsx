@@ -5,6 +5,7 @@ import { lazy, Suspense } from 'react';
 
 const HomePage = lazy(() => import('./components/home/HomePage'));
 const LocationsPage = lazy(() => import('./components/locations/LocationsPage'));
+const DevelopersPage = lazy(() => import('./components/developers/DevelopersPage'));
 
 
 const LoadingFallback = () => (
@@ -19,6 +20,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/locations" element={<LocationsPage />} />
+        <Route path="/developers" element={<DevelopersPage />} />
       </Routes>
     </Suspense>
   );

@@ -5,9 +5,13 @@ import { CITIES, DEFAULT_CITY } from "./cities";
 import bikes from "./routes/bikes";
 import stations from "./routes/stations";
 import analytics from "./routes/analytics";
+import { CycleTrackerMCP } from "./mcp";
+
+export { CycleTrackerMCP };
 
 export type Env = {
   DB: D1Database;
+  CYCLE_MCP: DurableObjectNamespace;
 };
 
 const app = new Hono<{ Bindings: Env }>();
@@ -36,8 +40,16 @@ app.route("/api/v1", bikes);
 app.route("/api/v1", analytics);
 app.route("/api/v1", stations);
 
+const mcpHandler = CycleTrackerMCP.serve("/mcp", { binding: "CYCLE_MCP" });
+
 export default {
-  fetch: app.fetch,
+  fetch(request, env, ctx) {
+    const { pathname } = new URL(request.url);
+    if (pathname === "/mcp" || pathname.startsWith("/mcp/")) {
+      return mcpHandler.fetch(request, env, ctx);
+    }
+    return app.fetch(request, env, ctx);
+  },
   async scheduled(_event, env, _ctx) {
     await takeSnapshot(env);
   },
