@@ -5,7 +5,8 @@ import { CITIES, type City } from "./cities";
 const MAX_STALENESS_SECONDS = 600;
 const RETENTION_DAYS = 90;
 
-type GbfsFeed<T> = { last_updated: number; data: T };
+// last_updated is epoch seconds in GBFS 2.2, an ISO-8601 string in 3.0
+type GbfsFeed<T> = { last_updated: number | string; data: T };
 
 type Bike = {
   bike_id: string;
@@ -34,6 +35,24 @@ type StationStatus = {
   vehicle_types_available?: { vehicle_type_id?: string; count?: number }[];
 };
 
+// GBFS 3.0 shapes (Bolt): renamed feeds/fields, localized station names
+type V3Vehicle = {
+  vehicle_id: string;
+  lat: number;
+  lon: number;
+  is_reserved: boolean;
+  is_disabled: boolean;
+  vehicle_type_id?: string;
+};
+
+type V3StationInfo = Omit<StationInfo, "name"> & {
+  name: { language: string; text: string }[];
+};
+
+type V3StationStatus = Omit<StationStatus, "num_bikes_available"> & {
+  num_vehicles_available?: number;
+};
+
 async function fetchFeed<T>(base: string, path: string): Promise<GbfsFeed<T>> {
   const res = await fetch(`${base}/${path}`);
   if (!res.ok) throw new Error(`GBFS ${base}/${path}: HTTP ${res.status}`);
@@ -41,15 +60,69 @@ async function fetchFeed<T>(base: string, path: string): Promise<GbfsFeed<T>> {
 }
 
 function isFresh(feed: GbfsFeed<unknown>): boolean {
-  return Date.now() / 1000 - feed.last_updated < MAX_STALENESS_SECONDS;
+  const updated =
+    typeof feed.last_updated === "number" ? feed.last_updated : Date.parse(feed.last_updated) / 1000;
+  return Date.now() / 1000 - updated < MAX_STALENESS_SECONDS;
 }
 
-async function snapshotCity(env: Env, city: City): Promise<void> {
+type CityFeeds = {
+  bikes: GbfsFeed<{ bikes: Bike[] }>;
+  stationInfo: GbfsFeed<{ stations: StationInfo[] }>;
+  stationStatus: GbfsFeed<{ stations: StationStatus[] }>;
+};
+
+async function fetchCityFeeds(city: City): Promise<CityFeeds> {
+  if (city.feedFormat === "3.0") {
+    const [vehicles, info, status] = await Promise.all([
+      fetchFeed<{ vehicles: V3Vehicle[] }>(city.gbfsBase, "vehicle_status"),
+      fetchFeed<{ stations: V3StationInfo[] }>(city.gbfsBase, "station_information"),
+      fetchFeed<{ stations: V3StationStatus[] }>(city.gbfsBase, "station_status"),
+    ]);
+    return {
+      bikes: {
+        last_updated: vehicles.last_updated,
+        data: {
+          bikes: vehicles.data.vehicles.map((v) => ({
+            bike_id: v.vehicle_id,
+            lat: v.lat,
+            lon: v.lon,
+            is_reserved: v.is_reserved,
+            is_disabled: v.is_disabled,
+            vehicle_type_id: v.vehicle_type_id,
+          })),
+        },
+      },
+      stationInfo: {
+        last_updated: info.last_updated,
+        data: {
+          stations: info.data.stations.map((s) => ({
+            ...s,
+            name: s.name.find((n) => n.language === "en")?.text ?? s.name[0]?.text ?? s.station_id,
+          })),
+        },
+      },
+      stationStatus: {
+        last_updated: status.last_updated,
+        data: {
+          stations: status.data.stations.map((s) => ({
+            ...s,
+            num_bikes_available: s.num_vehicles_available,
+          })),
+        },
+      },
+    };
+  }
+
   const [bikes, stationInfo, stationStatus] = await Promise.all([
     fetchFeed<{ bikes: Bike[] }>(city.gbfsBase, "free_bike_status.json"),
     fetchFeed<{ stations: StationInfo[] }>(city.gbfsBase, "station_information.json"),
     fetchFeed<{ stations: StationStatus[] }>(city.gbfsBase, "station_status.json"),
   ]);
+  return { bikes, stationInfo, stationStatus };
+}
+
+async function snapshotCity(env: Env, city: City): Promise<void> {
+  const { bikes, stationInfo, stationStatus } = await fetchCityFeeds(city);
 
   const timestamp = new Date().toISOString();
   const statements: D1PreparedStatement[] = [];

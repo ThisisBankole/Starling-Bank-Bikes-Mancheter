@@ -14,5 +14,25 @@ https://cycle.arrakis.house/api/v1
 | Bournemouth, Christchurch & Poole | `bcp` |
 | Bradford | `bradford` |
 | Brighton & Hove | `brighton` |
+| Canterbury | `canterbury` |
+| Cornwall | `cornwall` |
+| Eastleigh | `eastleigh` |
+| Guildford | `guildford` |
+| Hackney Cargo Bikes | `hackney-cargo` |
+| Hereford | `hereford` |
+| Hertsmere | `hertsmere` |
+| Isle of Wight | `isle-of-wight` |
+| Leeds | `leeds` |
+| Liverpool | `liverpool` |
+| Norwich | `norwich` |
+| Plymouth | `plymouth` |
+| Portsmouth | `portsmouth` |
+| Southampton | `southampton` |
+| Stevenage | `stevenage` |
+| Watford | `watford` |
+| West Midlands | `west-midlands` |
+| Weymouth | `weymouth` |
+| Wool | `wool` |
+| Worcester | `worcester` |
 
 There are two ways to consume the data: connect an AI agent via **MCP**, or call the **REST API** directly.

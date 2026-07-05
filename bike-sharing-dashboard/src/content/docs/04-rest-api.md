@@ -1,6 +1,6 @@
 # REST API
 
-All endpoints are `GET`, return JSON, and accept a `city` query parameter (`manchester` | `bcp` | `bradford` | `brighton`, default `manchester`). Unknown cities return `400`.
+All endpoints are `GET`, return JSON, and accept a `city` query parameter (default `manchester`; see `GET /cities` for all supported ids). Unknown cities return `400`.
 
 ## Cities
 
