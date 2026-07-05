@@ -29,6 +29,13 @@ export const CITIES: City[] = [
     center: { lat: 53.8121, lon: -1.7709 },
     bounds: { sw: [53.77, -1.82], ne: [53.85, -1.72] },
   },
+  {
+    id: "brighton",
+    name: "Brighton & Hove",
+    gbfsBase: "https://beryl-gbfs-production.web.app/v2_2/Brighton",
+    center: { lat: 50.8357, lon: -0.1342 },
+    bounds: { sw: [50.78, -0.26], ne: [50.89, -0.01] },
+  },
 ];
 
 export const DEFAULT_CITY = "manchester";
