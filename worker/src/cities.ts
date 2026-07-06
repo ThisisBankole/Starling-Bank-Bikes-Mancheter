@@ -53,13 +53,6 @@ export const CITIES: City[] = [
     bounds: { sw: [50.05, -5.6], ne: [50.47, -4.69] },
   },
   {
-    id: "eastleigh",
-    name: "Eastleigh",
-    gbfsBase: "https://beryl-gbfs-production.web.app/v2_2/Eastleigh",
-    center: { lat: 50.9687, lon: -1.3618 },
-    bounds: { sw: [50.93, -1.4], ne: [51.01, -1.33] },
-  },
-  {
     id: "guildford",
     name: "Guildford",
     gbfsBase: "https://beryl-gbfs-production.web.app/v2_2/Guildford",
@@ -86,13 +79,6 @@ export const CITIES: City[] = [
     gbfsBase: "https://beryl-gbfs-production.web.app/v2_2/Hertsmere",
     center: { lat: 51.6586, lon: -0.2721 },
     bounds: { sw: [51.63, -0.31], ne: [51.69, -0.235] },
-  },
-  {
-    id: "isle-of-wight",
-    name: "Isle of Wight",
-    gbfsBase: "https://gbfs.beryl.cc/v2_2/Isle_of_Wight",
-    center: { lat: 50.697, lon: -1.2213 },
-    bounds: { sw: [50.61, -1.35], ne: [50.79, -1.1] },
   },
   {
     id: "leeds",
@@ -124,20 +110,6 @@ export const CITIES: City[] = [
     bounds: { sw: [50.33, -4.26], ne: [50.45, -4.0] },
   },
   {
-    id: "portsmouth",
-    name: "Portsmouth",
-    gbfsBase: "https://gbfs.beryl.cc/v2_2/Portsmouth",
-    center: { lat: 50.8154, lon: -1.0735 },
-    bounds: { sw: [50.76, -1.14], ne: [50.87, -1.01] },
-  },
-  {
-    id: "southampton",
-    name: "Southampton",
-    gbfsBase: "https://gbfs.beryl.cc/v2_2/Southampton",
-    center: { lat: 50.9175, lon: -1.4083 },
-    bounds: { sw: [50.87, -1.48], ne: [50.97, -1.34] },
-  },
-  {
     id: "stevenage",
     name: "Stevenage",
     gbfsBase: "https://beryl-gbfs-production.web.app/v2_2/Stevenage",
@@ -152,25 +124,11 @@ export const CITIES: City[] = [
     bounds: { sw: [51.62, -0.48], ne: [51.72, -0.33] },
   },
   {
-    id: "west-midlands",
-    name: "West Midlands",
-    gbfsBase: "https://beryl-gbfs-production.web.app/v2_2/West_Midlands",
-    center: { lat: 52.4837, lon: -1.8069 },
-    bounds: { sw: [52.35, -2.18], ne: [52.62, -1.43] },
-  },
-  {
     id: "weymouth",
     name: "Weymouth",
     gbfsBase: "https://beryl-gbfs-production.web.app/v2_2/Weymouth",
     center: { lat: 50.6418, lon: -2.459 },
     bounds: { sw: [50.55, -2.52], ne: [50.74, -2.4] },
-  },
-  {
-    id: "wool",
-    name: "Wool",
-    gbfsBase: "https://gbfs.beryl.cc/v2_2/Wool",
-    center: { lat: 50.6896, lon: -2.2384 },
-    bounds: { sw: [50.66, -2.28], ne: [50.72, -2.2] },
   },
   {
     id: "worcester",

@@ -75,7 +75,7 @@ export class CycleTrackerMCP extends McpAgent<Env> {
           this.env.DB
             .prepare(
               `SELECT COUNT(*) AS bikes_total,
-                      SUM(CASE WHEN is_reserved = 0 AND is_disabled = 0 THEN 1 ELSE 0 END) AS bikes_available
+                      COALESCE(SUM(CASE WHEN is_reserved = 0 AND is_disabled = 0 THEN 1 ELSE 0 END), 0) AS bikes_available
                FROM bike_snapshots
                WHERE city = ? AND timestamp = (SELECT MAX(timestamp) FROM bike_snapshots WHERE city = ?)`
             )
@@ -83,9 +83,9 @@ export class CycleTrackerMCP extends McpAgent<Env> {
           this.env.DB
             .prepare(
               `SELECT COUNT(*) AS stations_total,
-                      SUM(CASE WHEN is_installed = 1 AND is_renting = 1 THEN 1 ELSE 0 END) AS stations_active,
-                      SUM(num_bikes_available) AS bikes_at_stations,
-                      SUM(num_ebikes_available) AS ebikes_at_stations
+                      COALESCE(SUM(CASE WHEN is_installed = 1 AND is_renting = 1 THEN 1 ELSE 0 END), 0) AS stations_active,
+                      COALESCE(SUM(num_bikes_available), 0) AS bikes_at_stations,
+                      COALESCE(SUM(num_ebikes_available), 0) AS ebikes_at_stations
                FROM station_snapshots WHERE city = ? AND timestamp = ?`
             )
             .bind(city, ts),
