@@ -1,12 +1,12 @@
 # REST API
 
-All endpoints are `GET`, return JSON, and accept a `city` query parameter (default `manchester`; see `GET /cities` for all supported ids). Unknown cities return `400`.
+Every endpoint uses `GET`, returns JSON, and accepts a `city` query parameter. The parameter defaults to `manchester`, which is the only supported city. A request for any other city returns `400`.
 
 ## Cities
 
 ### GET /cities
 
-Supported cities with map centers and bounds.
+Returns the supported cities with their map centers and bounds.
 
 ```bash
 curl "https://cycle.arrakis.house/api/v1/cities"
@@ -16,10 +16,10 @@ curl "https://cycle.arrakis.house/api/v1/cities"
 
 ### GET /bikes
 
-Every bike in the latest snapshot, with position and status.
+Returns every bike in the latest snapshot, with its position and status.
 
 ```bash
-curl "https://cycle.arrakis.house/api/v1/bikes?city=bradford"
+curl "https://cycle.arrakis.house/api/v1/bikes?city=manchester"
 ```
 
 ```json
@@ -28,8 +28,8 @@ curl "https://cycle.arrakis.house/api/v1/bikes?city=bradford"
   "data": [
     {
       "bike_id": "4043a8f7...",
-      "lat": 53.795,
-      "lon": -1.752,
+      "lat": 53.481,
+      "lon": -2.243,
       "is_reserved": false,
       "is_disabled": false,
       "vehicle_type_id": "bbe"
@@ -40,20 +40,20 @@ curl "https://cycle.arrakis.house/api/v1/bikes?city=bradford"
 
 ### GET /bikes/available
 
-Only bikes that are neither reserved nor disabled.
+Returns only bikes that are neither reserved nor disabled.
 
 ### GET /ebikes
 
-E-bikes only.
+Returns e-bikes only.
 
 ## Stations
 
 ### GET /stations/active
 
-Stations currently renting, with live availability — the most useful station endpoint.
+Returns stations that are currently renting, with live availability. This is the most useful station endpoint.
 
 ```bash
-curl "https://cycle.arrakis.house/api/v1/stations/active?city=bcp"
+curl "https://cycle.arrakis.house/api/v1/stations/active?city=manchester"
 ```
 
 ```json
@@ -79,13 +79,19 @@ curl "https://cycle.arrakis.house/api/v1/stations/active?city=bcp"
 }
 ```
 
-Related variants: `/stations` (names and positions only), `/stations/all`, `/stations/status`, `/stations/inactive`, and `/stations/{station_id}` for a single station.
+The following related variants are also available:
+
+- `/stations`: names and positions only
+- `/stations/all`
+- `/stations/status`
+- `/stations/inactive`
+- `/stations/{station_id}`: a single station
 
 ## Analytics
 
 ### GET /snapshots/latest
 
-Network-wide totals from the latest snapshot.
+Returns network-wide totals from the latest snapshot.
 
 ```bash
 curl "https://cycle.arrakis.house/api/v1/snapshots/latest?city=manchester"
@@ -93,7 +99,7 @@ curl "https://cycle.arrakis.house/api/v1/snapshots/latest?city=manchester"
 
 ### GET /snapshots/history
 
-Availability time series. Takes `hours` (default `24`).
+Returns an availability time series. Accepts an `hours` parameter, which defaults to `24`.
 
 ```bash
 curl "https://cycle.arrakis.house/api/v1/snapshots/history?hours=6&city=manchester"
@@ -101,8 +107,8 @@ curl "https://cycle.arrakis.house/api/v1/snapshots/history?hours=6&city=manchest
 
 ### GET /stations/popular
 
-Busiest stations by 24-hour average bikes available. Takes `limit` (default `10`).
+Returns the busiest stations by 24-hour average bikes available. Accepts a `limit` parameter, which defaults to `10`.
 
 ```bash
-curl "https://cycle.arrakis.house/api/v1/stations/popular?limit=5&city=bcp"
+curl "https://cycle.arrakis.house/api/v1/stations/popular?limit=5&city=manchester"
 ```

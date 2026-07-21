@@ -1,5 +1,5 @@
 # Fair use
 
-- No authentication and no rate limits are enforced, but the data only changes **every 10 minutes** — please don't poll faster than that.
-- No SLA. This is a personal project; endpoints may change with notice on this page.
-- Underlying data comes from public GBFS feeds. If you build something on this, attribution to Cycle Tracker is appreciated but not required.
+- Cycle Tracker enforces no authentication and no rate limits. The data changes only every 10 minutes, so don't poll faster than that.
+- The service provides no service-level agreement (SLA). This is a personal project, and endpoints can change. This page announces any changes.
+- The underlying data comes from a public General Bikeshare Feed Specification (GBFS) feed. If you build on Cycle Tracker, attribution is appreciated but not required.

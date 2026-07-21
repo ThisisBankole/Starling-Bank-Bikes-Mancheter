@@ -1,15 +1,17 @@
 # Starling Bank Bikes Manchester
 
-A dashboard for real-time monitoring and analytics of bike-sharing stations in Manchester, powered by Starling Bank. This project features both a web frontend and a backend API.
+Starling Bank Bikes Manchester is a dashboard that monitors bike-sharing stations in
+Manchester in real time and reports analytics about them. The project includes a web
+frontend and a backend API.
 
 ## Features
 
-- **Live bike and station stats**: View availability, utilization, and capacity for stations.
-- **Interactive map**: Visualize station locations and bike distribution.
-- **Popular stations analytics**: Insights into the most-used and highest capacity stations.
-- **Modern UI**: Built with React, Tailwind CSS, and Radix UI for a responsive experience.
+- **Live bike and station stats**: View availability, utilization, and capacity for each station.
+- **Interactive map**: See station locations and bike distribution.
+- **Popular-station analytics**: Find the most-used and highest-capacity stations.
+- **Modern UI**: Use a responsive interface built with React, Tailwind CSS, and Radix UI.
 
-## Project Structure
+## Project structure
 
 ```
 - bike-sharing-dashboard/   # Frontend (React, TypeScript, Vite)
@@ -31,19 +33,19 @@ A dashboard for real-time monitoring and analytics of bike-sharing stations in M
   │   ├── snapshot.ts           # GBFS feed -> D1 snapshot job (10-min cron)
   │   └── routes/               # API routes (bikes, stations, analytics)
   ├── migrations/               # D1 schema migrations
-  └── wrangler.jsonc            # Worker + D1 + cron + custom domain config
+  └── wrangler.jsonc            # Worker + D1 + cron + custom-domain config
 ```
 
-## Getting Started
+## Get started
 
 ### Prerequisites
 
-- Node.js & npm
-- A Cloudflare account (Workers + D1) for deployment
+- Node.js and npm
+- A Cloudflare account with Workers and D1, for deployment
 
-### Local development
+### Develop locally
 
-**Backend (Worker + local D1):**
+To run the backend (Worker plus local D1), enter the following commands:
 
 ```sh
 cd worker
@@ -52,7 +54,7 @@ npm run migrate:local   # first time only
 npx wrangler dev        # API on http://localhost:8787
 ```
 
-**Frontend:**
+To run the frontend, enter the following commands:
 
 ```sh
 cd bike-sharing-dashboard
@@ -60,15 +62,16 @@ npm install
 npm run dev             # UI on http://localhost:5173, calls the local worker
 ```
 
-### Deployment
+### Deploy
 
-Live at [cycle.arrakis.house](https://cycle.arrakis.house). Pushes to `main` that touch
-`worker/` or `bike-sharing-dashboard/` trigger `.github/workflows/deploy.yml`, which builds
-the frontend, applies D1 migrations, and runs `wrangler deploy`. The Worker serves the
-static frontend and the `/api/v1` API from the same origin, and a 10-minute cron snapshots
-the Beryl GBFS feeds into D1.
+The app runs at [cycle.arrakis.house](https://cycle.arrakis.house). When you push a
+change to `main` that touches `worker/` or `bike-sharing-dashboard/`, the
+`.github/workflows/deploy.yml` workflow builds the frontend, applies the D1 migrations,
+and runs `wrangler deploy`. The Worker serves the static frontend and the `/api/v1` API
+from the same origin. A 10-minute cron job snapshots the Manchester Beryl General
+Bikeshare Feed Specification (GBFS) feed into D1.
 
-## Technologies Used
+## Technologies used
 
 - **Frontend:** React, TypeScript, Tailwind CSS, Vite, Radix UI
 - **Backend:** Cloudflare Workers, Hono, D1 (SQLite), TypeScript

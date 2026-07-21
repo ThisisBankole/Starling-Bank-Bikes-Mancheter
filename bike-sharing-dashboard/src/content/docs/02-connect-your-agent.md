@@ -1,12 +1,12 @@
 # Connect your AI agent
 
-Cycle Tracker exposes a remote [MCP](https://modelcontextprotocol.io) server — no authentication, no install. Point your client at:
+Cycle Tracker exposes a remote [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server. You don't need authentication or a local install. Point your client at the following URL:
 
 ```
 https://cycle.arrakis.house/mcp
 ```
 
-Then ask things like *"How many bikes are free near Piccadilly Gardens right now?"* or *"Which Bradford stations are busiest?"*
+After you connect, ask questions such as *"How many bikes are free near Piccadilly Gardens right now?"* or *"Which Manchester stations are busiest?"*
 
 ## Claude Code
 
